@@ -50,6 +50,14 @@ func NewPassword(raw string) (Password, error) {
 	return Password{value: hash}, nil
 }
 
+// NewPasswordFromHash creates a new Password instance from an existing hash.
+func NewPasswordFromHash(hash []byte) Password {
+	hashCopy := make([]byte, len(hash))
+	copy(hashCopy, hash)
+
+	return Password{value: hashCopy}
+}
+
 // Verify checks if the provided raw password matches the hash.
 func (p Password) Verify(raw string) bool {
 	return bcrypt.CompareHashAndPassword(p.value, []byte(raw)) == nil
