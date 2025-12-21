@@ -62,3 +62,42 @@ func NewUserWithID(id, username, email, password string) (*User, error) {
 	user.ID = parsedID
 	return user, nil
 }
+
+// ChangeUsername changes the username of the user.
+func (u *User) ChangeUsername(new string) error {
+	newUsernameVO, err := vo.NewUsername(new)
+	if err != nil {
+		return err
+	}
+
+	u.Username = newUsernameVO
+	return nil
+}
+
+// ChangeEmail changes the email of the user.
+func (u *User) ChangeEmail(new string) error {
+	newEmailVO, err := vo.NewEmail(new)
+	if err != nil {
+		return err
+	}
+
+	u.Email = newEmailVO
+
+	return nil
+}
+
+// ChangePassword changes the password of the user.
+func (u *User) ChangePassword(old, new string) error {
+	err := u.PasswordHash.Verify(old)
+	if err != nil {
+		return err
+	}
+
+	newPasswordVO, err := vo.NewPassword(new)
+	if err != nil {
+		return err
+	}
+
+	u.PasswordHash = newPasswordVO
+	return nil
+}
