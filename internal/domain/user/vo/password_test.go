@@ -32,7 +32,7 @@ func TestNewPassword(t *testing.T) {
 
 			require.NoError(t, err)
 			// Verify should accept the original input
-			require.True(t, p.Verify(tt.input))
+			require.NoError(t, p.Verify(tt.input))
 			// Value should be a non-empty hash string different from raw
 			require.NotEmpty(t, p.Value())
 			require.NotEqual(t, tt.input, p.Value())
@@ -47,13 +47,13 @@ func TestNewPasswordFromHashAndVerify(t *testing.T) {
 	require.NoError(t, err)
 
 	// ensure Verify works on the original
-	require.True(t, p1.Verify(raw))
+	require.NoError(t, p1.Verify(raw))
 
 	// reconstruct using Value() as hash
 	p2 := vo.NewPasswordFromHash([]byte(p1.Value()))
 
 	// verify that the reconstructed password verifies the same raw
-	require.True(t, p2.Verify(raw))
+	require.NoError(t, p2.Verify(raw))
 
 	// Value should be equal to the original hash when created from hash
 	require.Equal(t, p1.Value(), p2.Value())
