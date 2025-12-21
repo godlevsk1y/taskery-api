@@ -2,6 +2,7 @@ package vo
 
 import (
 	"errors"
+	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -22,6 +23,9 @@ var (
 	ErrPasswordTooLong  = errors.New("password is too long")
 	ErrPasswordInvalid  = errors.New("password is invalid")
 	ErrPasswordHashing  = errors.New("failed to hash password")
+
+	ErrPasswordVerifyFailed = errors.New("failed to verify the password")
+	ErrPassowrdNotMatch     = errors.New("password does not match the hash")
 )
 
 // NewPassword creates a new Password instance.
@@ -59,8 +63,16 @@ func NewPasswordFromHash(hash []byte) Password {
 }
 
 // Verify checks if the provided raw password matches the hash.
-func (p Password) Verify(raw string) bool {
-	return bcrypt.CompareHashAndPassword(p.value, []byte(raw)) == nil
+func (p Password) Verify(raw string) error {
+	err := bcrypt.CompareHashAndPassword(p.value, []byte(raw))
+	if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+		return ErrPassowrdNotMatch
+	}
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrPasswordVerifyFailed, err)
+	}
+
+	return nil
 }
 
 // Value returns the password hash as string.
