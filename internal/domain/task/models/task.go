@@ -149,3 +149,20 @@ func (t *Task) IsOverdue() bool {
 
 	return t.deadline.IsOverdue() && !t.isCompleted
 }
+
+// Complete marks the task as complete and sets the time of completion.
+func (t *Task) Complete() {
+	if !t.isCompleted {
+		t.isCompleted = true
+		now := time.Now()
+		t.completedAt = &now
+	}
+}
+
+// Reopen marks the task as incomplete and clears the time of completion.
+func (t *Task) Reopen() {
+	if t.isCompleted {
+		t.isCompleted = false
+		t.completedAt = nil
+	}
+}
