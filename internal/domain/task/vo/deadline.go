@@ -37,5 +37,5 @@ func (d Deadline) IsAfter(t time.Time) bool {
 
 // IsOverdue checks if the deadline is overdue.
 func (d Deadline) IsOverdue() bool {
-	return d.value.After(time.Now())
+	return d.value.Before(time.Now())
 }
