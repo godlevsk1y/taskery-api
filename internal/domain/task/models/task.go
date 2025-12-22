@@ -139,11 +139,13 @@ func (t *Task) RemoveDeadline() error {
 }
 
 // IsOverdue checks if the task is overdue.
-// It returns a boolean indicating whether the task is overdue and an error if the deadline is not set.
-func (t *Task) IsOverdue() (bool, error) {
+// It returns a boolean indicating whether the task is overdue.
+//
+// If the task is completed, it returns false.
+func (t *Task) IsOverdue() bool {
 	if t.deadline == nil {
-		return false, ErrDeadlineNotSet
+		return false
 	}
 
-	return t.deadline.IsOverdue(), nil
+	return t.deadline.IsOverdue() && !t.isCompleted
 }
