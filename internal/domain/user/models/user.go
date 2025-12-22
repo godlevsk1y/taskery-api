@@ -10,11 +10,16 @@ import (
 // User is a model that represents a user.
 // ID and Email are unique for each user.
 type User struct {
-	ID           uuid.UUID
-	Username     vo.Username
-	Email        vo.Email
-	PasswordHash vo.Password
+	id           uuid.UUID
+	username     vo.Username
+	email        vo.Email
+	passwordHash vo.Password
 }
+
+func (u *User) ID() uuid.UUID             { return u.id }
+func (u *User) Username() vo.Username     { return u.username }
+func (u *User) Email() vo.Email           { return u.email }
+func (u *User) PasswordHash() vo.Password { return u.passwordHash }
 
 var (
 	ErrUserIDInvalid = errors.New("user ID is invalid")
@@ -39,10 +44,10 @@ func NewUser(username, email, password string) (*User, error) {
 	}
 
 	return &User{
-		ID:           uuid.New(),
-		Username:     usernameVO,
-		Email:        emailVO,
-		PasswordHash: passwordVO,
+		id:           uuid.New(),
+		username:     usernameVO,
+		email:        emailVO,
+		passwordHash: passwordVO,
 	}, nil
 }
 
@@ -59,7 +64,7 @@ func NewUserWithID(id, username, email, password string) (*User, error) {
 		return nil, ErrUserIDInvalid
 	}
 
-	user.ID = parsedID
+	user.id = parsedID
 	return user, nil
 }
 
@@ -70,7 +75,7 @@ func (u *User) ChangeUsername(new string) error {
 		return err
 	}
 
-	u.Username = newUsernameVO
+	u.username = newUsernameVO
 	return nil
 }
 
@@ -81,14 +86,14 @@ func (u *User) ChangeEmail(new string) error {
 		return err
 	}
 
-	u.Email = newEmailVO
+	u.email = newEmailVO
 
 	return nil
 }
 
 // ChangePassword changes the password of the user.
 func (u *User) ChangePassword(old, new string) error {
-	err := u.PasswordHash.Verify(old)
+	err := u.passwordHash.Verify(old)
 	if err != nil {
 		return err
 	}
@@ -98,6 +103,6 @@ func (u *User) ChangePassword(old, new string) error {
 		return err
 	}
 
-	u.PasswordHash = newPasswordVO
+	u.passwordHash = newPasswordVO
 	return nil
 }

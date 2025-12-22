@@ -58,14 +58,14 @@ func TestNewUser(t *testing.T) {
 
 			require.NoError(t, err)
 			require.NotNil(t, u)
-			require.NotEqual(t, uuid.Nil, u.ID)
+			require.NotEqual(t, uuid.Nil, u.ID())
 
 			// Check that VOs are populated correctly
-			require.Equal(t, tt.username, u.Username.String())
-			require.Equal(t, tt.email, u.Email.String())
+			require.Equal(t, tt.username, u.Username().String())
+			require.Equal(t, tt.email, u.Email().String())
 
 			// Verify password is hashed and can be verified
-			require.NoError(t, u.PasswordHash.Verify(tt.password))
+			require.NoError(t, u.PasswordHash().Verify(tt.password))
 		})
 	}
 }
@@ -112,7 +112,7 @@ func TestNewUserWithID(t *testing.T) {
 
 			parsed, err := uuid.Parse(tt.id)
 			require.NoError(t, err)
-			require.Equal(t, parsed, u.ID)
+			require.Equal(t, parsed, u.ID())
 		})
 	}
 }
@@ -146,7 +146,7 @@ func TestChangeUsername(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			require.Equal(t, tt.newVal, u.Username.String())
+			require.Equal(t, tt.newVal, u.Username().String())
 		})
 	}
 }
@@ -180,7 +180,7 @@ func TestChangeEmail(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			require.Equal(t, tt.newVal, u.Email.String())
+			require.Equal(t, tt.newVal, u.Email().String())
 		})
 	}
 }
@@ -224,9 +224,9 @@ func TestChangePassword(t *testing.T) {
 			}
 			require.NoError(t, err)
 			// Verify the new password works
-			require.NoError(t, u.PasswordHash.Verify(tt.newPass))
+			require.NoError(t, u.PasswordHash().Verify(tt.newPass))
 			// And old no longer works
-			require.Error(t, u.PasswordHash.Verify(tt.oldPass))
+			require.Error(t, u.PasswordHash().Verify(tt.oldPass))
 		})
 	}
 }
