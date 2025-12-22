@@ -17,16 +17,35 @@ type Task struct {
 	title       vo.Title
 	description vo.Description
 
+	deadline *vo.Deadline
+
 	isCompleted bool
-	deadline    *vo.Deadline
+	completedAt *time.Time
 }
 
 func (t *Task) ID() uuid.UUID               { return t.id }
 func (t *Task) Owner() uuid.UUID            { return t.owner }
 func (t *Task) Title() vo.Title             { return t.title }
 func (t *Task) Description() vo.Description { return t.description }
-func (t *Task) IsCompleted() bool           { return t.isCompleted }
 func (t *Task) Deadline() *vo.Deadline      { return t.deadline }
+func (t *Task) IsCompleted() bool           { return t.isCompleted }
+
+// CompletedAt returns the timestamp when the task was completed.
+//
+// If the task is not completed, it returns nil. The returned value
+// is a copy of the internal timestamp, so modifying it does not
+// affect the internal state of the task.
+//
+// This ensures that the task's completion time can be safely read
+// without allowing external code to mutate it.
+func (t *Task) CompletedAt() *time.Time {
+	if t.completedAt == nil {
+		return nil
+	}
+
+	copy := *t.completedAt
+	return &copy
+}
 
 // NewTask creates a new Task instance with the given title, description, and owner. It does not set a deadline.
 func NewTask(title string, description string, owner uuid.UUID) (*Task, error) {
@@ -47,8 +66,10 @@ func NewTask(title string, description string, owner uuid.UUID) (*Task, error) {
 		title:       titleVO,
 		description: descriptionVO,
 
-		deadline:    nil,
+		deadline: nil,
+
 		isCompleted: false,
+		completedAt: nil,
 	}, nil
 }
 
