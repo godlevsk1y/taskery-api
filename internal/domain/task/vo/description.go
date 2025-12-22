@@ -19,3 +19,7 @@ func NewDescription(value string) (Description, error) {
 
 	return Description{value: value}, nil
 }
+
+func (d Description) String() string {
+	return d.value
+}
