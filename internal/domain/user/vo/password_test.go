@@ -31,32 +31,25 @@ func TestNewPassword(t *testing.T) {
 			}
 
 			require.NoError(t, err)
-			// Verify should accept the original input
 			require.NoError(t, p.Verify(tt.input))
-			// Value should be a non-empty hash string different from raw
-			require.NotEmpty(t, p.Value())
-			require.NotEqual(t, tt.input, p.Value())
+			require.NotEmpty(t, p.String())
+			require.NotEqual(t, tt.input, p.String())
 		})
 	}
 }
 
 func TestNewPasswordFromHashAndVerify(t *testing.T) {
-	// create a new password and then reconstruct from its hash
 	raw := "Password123!"
 	p1, err := vo.NewPassword(raw)
 	require.NoError(t, err)
 
-	// ensure Verify works on the original
 	require.NoError(t, p1.Verify(raw))
 
-	// reconstruct using Value() as hash
-	p2 := vo.NewPasswordFromHash([]byte(p1.Value()))
+	p2 := vo.NewPasswordFromHash([]byte(p1.String()))
 
-	// verify that the reconstructed password verifies the same raw
 	require.NoError(t, p2.Verify(raw))
 
-	// Value should be equal to the original hash when created from hash
-	require.Equal(t, p1.Value(), p2.Value())
+	require.Equal(t, p1.String(), p2.String())
 }
 
 func mkString(ch rune, n int) string {

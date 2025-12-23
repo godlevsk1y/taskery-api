@@ -75,8 +75,8 @@ func (p Password) Verify(raw string) error {
 	return nil
 }
 
-// Value returns the password hash as string.
-func (p Password) Value() string {
+// String returns the password hash as string.
+func (p Password) String() string {
 	return string(p.value)
 }
 
