@@ -129,13 +129,8 @@ func (t *Task) HasDeadline() bool {
 var ErrDeadlineNotSet = errors.New("deadline not set")
 
 // RemoveDeadline removes the deadline from the task if it is set.
-func (t *Task) RemoveDeadline() error {
-	if t.deadline == nil {
-		return ErrDeadlineNotSet
-	}
-
+func (t *Task) RemoveDeadline() {
 	t.deadline = nil
-	return nil
 }
 
 // IsOverdue checks if the task is overdue.
@@ -161,8 +156,6 @@ func (t *Task) Complete() {
 
 // Reopen marks the task as incomplete and clears the time of completion.
 func (t *Task) Reopen() {
-	if t.isCompleted {
-		t.isCompleted = false
-		t.completedAt = nil
-	}
+	t.isCompleted = false
+	t.completedAt = nil
 }
