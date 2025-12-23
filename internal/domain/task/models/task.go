@@ -73,7 +73,7 @@ func NewTask(title string, description string, owner uuid.UUID) (*Task, error) {
 	}, nil
 }
 
-// NewTaskWithDeadline creates a new Task instance with the given title, description, owner, and deadline. It sets the deadline.
+// NewTaskWithDeadline creates a new Task instance with the given title, description, owner, and deadline.
 func NewTaskWithDeadline(title string, description string, owner uuid.UUID, deadline time.Time) (*Task, error) {
 	task, err := NewTask(title, description, owner)
 	if err != nil {
