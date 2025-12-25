@@ -7,8 +7,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// User is a model that represents a user.
-// ID and Email are unique for each user.
+// User represents a system user.
+// Each user has a unique ID and Email. Password is stored as a hashed value.
 type User struct {
 	id           uuid.UUID
 	username     vo.Username
@@ -16,17 +16,26 @@ type User struct {
 	passwordHash vo.Password
 }
 
-func (u *User) ID() uuid.UUID             { return u.id }
-func (u *User) Username() vo.Username     { return u.username }
-func (u *User) Email() vo.Email           { return u.email }
+// ID returns the user's unique identifier.
+func (u *User) ID() uuid.UUID { return u.id }
+
+// Username returns the user's username value object.
+func (u *User) Username() vo.Username { return u.username }
+
+// Email returns the user's email value object.
+func (u *User) Email() vo.Email { return u.email }
+
+// PasswordHash returns the user's password hash value object.
 func (u *User) PasswordHash() vo.Password { return u.passwordHash }
 
 var (
+	// ErrUserIDInvalid indicates that a provided user ID is not a valid UUID.
 	ErrUserIDInvalid = errors.New("user ID is invalid")
 )
 
 // NewUser creates a new User from raw string inputs.
-// It validates and converts the inputs into value objects and hashes the password.
+// It validates the username, email, and password, converts them into value objects,
+// hashes the password, and generates a new UUID for the user
 func NewUser(username, email, password string) (*User, error) {
 	usernameVO, err := vo.NewUsername(username)
 	if err != nil {
@@ -51,8 +60,9 @@ func NewUser(username, email, password string) (*User, error) {
 	}, nil
 }
 
-// NewUserWithID creates a new User from raw string inputs and a UUID ID.
-// It validates and converts the inputs into value objects and hashes the password.
+// NewUserWithID creates a new User with a specified UUID.
+// It validates the ID and other user fields, converts them into value objects,
+// and hashes the password. Returns ErrUserIDInvalid if the UUID is invalid.
 func NewUserWithID(id, username, email, password string) (*User, error) {
 	user, err := NewUser(username, email, password)
 	if err != nil {
@@ -68,7 +78,8 @@ func NewUserWithID(id, username, email, password string) (*User, error) {
 	return user, nil
 }
 
-// ChangeUsername changes the username of the user.
+// ChangeUsername updates the user's username after validating it.
+// Returns an error if the new username is invalid.
 func (u *User) ChangeUsername(new string) error {
 	newUsernameVO, err := vo.NewUsername(new)
 	if err != nil {
@@ -79,7 +90,8 @@ func (u *User) ChangeUsername(new string) error {
 	return nil
 }
 
-// ChangeEmail changes the email of the user.
+// ChangeEmail updates the user's email after validating it.
+// Returns an error if the new email is invalid.
 func (u *User) ChangeEmail(new string) error {
 	newEmailVO, err := vo.NewEmail(new)
 	if err != nil {
@@ -91,7 +103,9 @@ func (u *User) ChangeEmail(new string) error {
 	return nil
 }
 
-// ChangePassword changes the password of the user.
+// ChangePassword updates the user's password.
+// The old password must be correctly verified first.
+// Returns an error if verification fails or the new password is invalid.
 func (u *User) ChangePassword(old, new string) error {
 	err := u.passwordHash.Verify(old)
 	if err != nil {
