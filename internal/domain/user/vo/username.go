@@ -2,7 +2,8 @@ package vo
 
 import "errors"
 
-// Username is a VO that represents a username.
+// Username is a value object (VO) that represents a validated username.
+// It ensures the username is not empty and conforms to all the rules.
 type Username struct {
 	value string
 }

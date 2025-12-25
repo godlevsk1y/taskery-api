@@ -7,7 +7,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Password is a VO that represents a password hash.
+// Password is a value object (VO) that represents a hashed password.
+// It ensures the password conforms to the rules.
 type Password struct {
 	value []byte
 }
@@ -24,8 +25,11 @@ var (
 	ErrPasswordInvalid  = errors.New("password is invalid")
 	ErrPasswordHashing  = errors.New("failed to hash password")
 
+	// ErrPasswordVerifyFailed is returned if an error occured during password verification
 	ErrPasswordVerifyFailed = errors.New("failed to verify the password")
-	ErrPassowrdNotMatch     = errors.New("password does not match the hash")
+
+	// ErrPassowrdNotMatch is returned if the password does not match the hash
+	ErrPassowrdNotMatch = errors.New("password does not match the hash")
 )
 
 // NewPassword creates a new Password instance.
@@ -63,6 +67,8 @@ func NewPasswordFromHash(hash []byte) Password {
 }
 
 // Verify checks if the provided raw password matches the hash.
+// If the raw string does not match the hash, ErrPasswordNotMatch is returned.
+// If another error occurs, ErrPasswordVerifyFailed is returned
 func (p Password) Verify(raw string) error {
 	err := bcrypt.CompareHashAndPassword(p.value, []byte(raw))
 	if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
@@ -80,7 +86,6 @@ func (p Password) String() string {
 	return string(p.value)
 }
 
-// IsASCII checks if the string includes only ASCII characters.
 func isASCII(s string) bool {
 	for _, r := range s {
 		if r > 127 {
