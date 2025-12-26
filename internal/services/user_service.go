@@ -67,10 +67,10 @@ func NewUserService(usersRepo UserRepository) (*UserService, error) {
 	}, nil
 }
 
-// Create creates a new user with the given username, email, and password.
+// Register creates a new user with the given username, email, and password.
 // Returns ErrUserExists if a user with the same identifier exists,
 // or ErrUserCreateFailed for other creation errors.
-func (us *UserService) Create(username, email, password string) error {
+func (us *UserService) Register(username, email, password string) error {
 	user, err := models.NewUser(username, email, password)
 	if err != nil {
 		return err
