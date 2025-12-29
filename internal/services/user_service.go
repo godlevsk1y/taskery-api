@@ -59,11 +59,14 @@ var (
 	// ErrUserNotFound is returned by UserService if the user was not found in the repository
 	ErrUserNotFound = errors.New("user was not found")
 
-	// ErrUserCreateFailed is returned by UserService if an error occured during creation
+	// ErrUserCreateFailed is returned by UserService if an internal error occured during creation
 	ErrUserCreateFailed = errors.New("failed to create user")
 
-	// ErrUserChangeEmailFailed is returned by UserService if an error occured during email editing
+	// ErrUserChangeEmailFailed is returned by UserService if an internal error occured during email editing
 	ErrUserChangeEmailFailed = errors.New("failed to change email")
+
+	// ErrUserChangePasswordFailed is returned by UserService if an internal error occured during password editing
+	ErrUserChangePasswordFailed = errors.New("failed to change password")
 
 	// ErrUserUnauthorized is returned by UserService
 	// if the user does not have the necessary permissions to perform the operation.
@@ -151,6 +154,44 @@ func (us *UserService) ChangeEmail(id, newEmail, password string) error {
 
 	if err := us.usersRepo.Update(user); err != nil {
 		return fmt.Errorf("%w: %s", ErrUserChangeEmailFailed, err)
+	}
+
+	return nil
+}
+
+// ChangePassword updates the user's password.
+//
+// The method retrieves a user by the given ID, verifies the current (old)
+// password, and replaces it with a new one. If the user does not exist,
+// ErrUserNotFound is returned. Any repository-related failure during
+// retrieval or update is wrapped with ErrUserChangePasswordFailed.
+//
+// Parameters:
+//   - id:   The unique identifier of the user.
+//   - old:  The user's current password (used for verification).
+//   - new:  The new password to be set.
+//
+// Returns:
+//   - ErrUserNotFound if no user with the given ID exists.
+//   - ErrUserChangePasswordFailed if a repository operation fails.
+//   - Any error returned by user.ChangePassword (e.g. invalid current
+//     password or new password validation failure).
+//   - nil on success.
+func (us *UserService) ChangePassword(id, old, new string) error {
+	user, err := us.usersRepo.FindByID(id)
+	if errors.Is(err, ErrUserRepoNotFound) {
+		return ErrUserNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrUserChangePasswordFailed, err)
+	}
+
+	if err := user.ChangePassword(old, new); err != nil {
+		return err
+	}
+
+	if err := us.usersRepo.Update(user); err != nil {
+		return fmt.Errorf("%w: %s", ErrUserChangePasswordFailed, err)
 	}
 
 	return nil

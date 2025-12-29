@@ -104,7 +104,7 @@ func (u *User) ChangeEmail(new string) error {
 }
 
 // ChangePassword updates the user's password.
-// The old password must be correctly verified first.
+// The old password is verified in this method.
 // Returns an error if verification fails or the new password is invalid.
 func (u *User) ChangePassword(old, new string) error {
 	err := u.passwordHash.Verify(old)
