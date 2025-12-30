@@ -143,19 +143,17 @@ func (us *UserService) ChangeUsername(id, newUsername, password string) error {
 	return nil
 }
 
-// ChangeEmail updates the email address of an existing user.
+// ChangeEmail changes the email address of the user with the given id.
 //
-// The method performs the following steps:
-//   - Retrieves the user by ID.
-//   - Verifies the provided password to ensure the user is authorized.
-//   - Checks that the new email is not already in use.
-//   - Updates the user's email and persists the change.
+// The operation verifies the provided password and ensures that the newEmail
+// is not already in use by another user.
+// If the user does not exist, it returns ErrUserNotFound.
+// If the password is invalid, it returns ErrUserUnauthorized.
+// If the new email is already taken, it returns ErrEmailAlreadyTaken.
+// If any repository operation fails, it returns an error wrapping
+// ErrUserChangeEmailFailed.
 //
-// Returns:
-//   - ErrUserNotFound if the user with the given ID does not exist.
-//   - ErrUserUnauthorized if the provided password is incorrect.
-//   - ErrEmailAlreadyTaken if the new email is already associated with another user.
-//   - ErrUserChangeEmailFailed for any internal or repository-related errors.
+// On success, ChangeEmail returns nil.
 func (us *UserService) ChangeEmail(id, newEmail, password string) error {
 	user, err := us.usersRepo.FindByID(id)
 	if errors.Is(err, ErrUserRepoNotFound) {
@@ -192,24 +190,16 @@ func (us *UserService) ChangeEmail(id, newEmail, password string) error {
 	return nil
 }
 
-// ChangePassword updates the user's password.
+// ChangePassword updates the password of the user with the given id.
 //
-// The method retrieves a user by the given ID, verifies the current (old)
-// password, and replaces it with a new one. If the user does not exist,
-// ErrUserNotFound is returned. Any repository-related failure during
-// retrieval or update is wrapped with ErrUserChangePasswordFailed.
+// The operation verifies the old password before applying the new one.
+// If the user does not exist, it returns ErrUserNotFound.
+// If changing the password fails, it returns the corresponding error from
+// the user object.
+// If updating the user in the repository fails, it returns an error wrapping
+// ErrUserChangePasswordFailed.
 //
-// Parameters:
-//   - id:   The unique identifier of the user.
-//   - old:  The user's current password (used for verification).
-//   - new:  The new password to be set.
-//
-// Returns:
-//   - ErrUserNotFound if no user with the given ID exists.
-//   - ErrUserChangePasswordFailed if a repository operation fails.
-//   - Any error returned by user.ChangePassword (e.g. invalid current
-//     password or new password validation failure).
-//   - nil on success.
+// On success, ChangePassword returns nil.
 func (us *UserService) ChangePassword(id, old, new string) error {
 	user, err := us.usersRepo.FindByID(id)
 	if errors.Is(err, ErrUserRepoNotFound) {
