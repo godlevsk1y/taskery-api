@@ -10,7 +10,8 @@ import (
 
 // UserService is a service that handles user operations.
 type UserService struct {
-	usersRepo UserRepository
+	usersRepo     UserRepository
+	tokenProvider TokenProvider
 }
 
 // UserRepository defines the methods for managing user data in a persistent storage.
@@ -37,6 +38,11 @@ type UserRepository interface {
 	Delete(id string) error
 }
 
+// TokenProvider defines the interface for generating authentication tokens.
+type TokenProvider interface {
+	Generate(userID string) (string, error)
+}
+
 // ErrUserRepositoryNil is an error that indicates that the user repository
 // that is passed to NewUserService is nil.
 var ErrUserRepositoryNil = errors.New("user repository is nil")
@@ -59,8 +65,11 @@ var (
 	// ErrUserNotFound is returned by UserService if the user was not found in the repository
 	ErrUserNotFound = errors.New("user was not found")
 
-	// ErrUserCreateFailed is returned by UserService if an internal error occured during creation
-	ErrUserCreateFailed = errors.New("failed to create user")
+	// ErrUserRegisterFailed is returned by UserService if an internal error occured during creation
+	ErrUserRegisterFailed = errors.New("failed to create user")
+
+	// ErrUserLoginFailed is returned by UserService if an internal error occured during login
+	ErrUserLoginFailed = errors.New("failed to login")
 
 	// ErrUserChangeEmailFailed is returned by UserService if an internal error occured during email editing
 	ErrUserChangeEmailFailed = errors.New("failed to change email")
@@ -104,10 +113,41 @@ func (us *UserService) Register(username, email, password string) error {
 			return ErrUserExists
 		}
 
-		return ErrUserCreateFailed
+		return ErrUserRegisterFailed
 	}
 
 	return nil
+}
+
+// Login authenticates a user using the given email and password.
+// If authentication is successful, it returns a token representing the session.
+//
+// If no user exists with the given email, Login returns ErrUserNotFound.
+// If the password does not match, Login returns ErrUserUnauthorized.
+// If token generation or repository access fails, Login returns ErrUserLoginFailed.
+func (us *UserService) Login(email, password string) (string, error) {
+	user, err := us.usersRepo.FindByEmail(email)
+	if errors.Is(err, ErrUserRepoNotFound) {
+		return "", ErrUserNotFound
+	}
+	if err != nil {
+		return "", fmt.Errorf("%w: %s", ErrUserLoginFailed, err)
+	}
+
+	err = user.PasswordHash().Verify(password)
+	if errors.Is(err, vo.ErrPassowrdNotMatch) {
+		return "", ErrUserUnauthorized
+	}
+	if err != nil {
+		return "", fmt.Errorf("%w: %s", ErrUserLoginFailed, err)
+	}
+
+	token, err := us.tokenProvider.Generate(user.ID().String())
+	if err != nil {
+		return "", fmt.Errorf("%w: %s", ErrUserLoginFailed, err)
+	}
+
+	return token, nil
 }
 
 // ChangeUsername changes the username of the user with the given id.
