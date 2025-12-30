@@ -110,6 +110,39 @@ func (us *UserService) Register(username, email, password string) error {
 	return nil
 }
 
+// ChangeUsername changes the username of the user with the given id.
+//
+// The operation verifies the provided password before applying the change.
+// If the user does not exist, it returns ErrUserNotFound.
+// If the password is invalid, it returns ErrUserUnauthorized.
+// If updating the user fails, it returns an error wrapping ErrUserChangeEmailFailed.
+//
+// On success, ChangeUsername returns nil.
+func (us *UserService) ChangeUsername(id, newUsername, password string) error {
+	user, err := us.usersRepo.FindByID(id)
+	if errors.Is(err, ErrUserRepoNotFound) {
+		return ErrUserNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrUserChangeEmailFailed, err)
+	}
+
+	err = user.PasswordHash().Verify(password)
+	if errors.Is(err, vo.ErrPassowrdNotMatch) {
+		return ErrUserUnauthorized
+	}
+
+	if err := user.ChangeUsername(newUsername); err != nil {
+		return err
+	}
+
+	if err := us.usersRepo.Update(user); err != nil {
+		return fmt.Errorf("%w: %s", ErrUserChangeEmailFailed, err)
+	}
+
+	return nil
+}
+
 // ChangeEmail updates the email address of an existing user.
 //
 // The method performs the following steps:
