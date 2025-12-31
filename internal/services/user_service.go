@@ -77,6 +77,9 @@ var (
 	// ErrUserChangePasswordFailed is returned by UserService if an internal error occured during password editing
 	ErrUserChangePasswordFailed = errors.New("failed to change password")
 
+	// ErrUserDeleteFailed is returned by UserService if an internal error occured during deletion
+	ErrUserDeleteFailed = errors.New("failed to delete user")
+
 	// ErrUserUnauthorized is returned by UserService
 	// if the user does not have the necessary permissions to perform the operation.
 	ErrUserUnauthorized = errors.New("unauthorized access")
@@ -255,6 +258,36 @@ func (us *UserService) ChangePassword(id, old, new string) error {
 
 	if err := us.usersRepo.Update(user); err != nil {
 		return fmt.Errorf("%w: %s", ErrUserChangePasswordFailed, err)
+	}
+
+	return nil
+}
+
+// Delete deletes the user with the given id after verifying the provided password.
+//
+// Delete returns ErrUserNotFound if the user does not exist.
+// It returns ErrUserUnauthorized if the password does not match.
+// If the deletion fails for any other reason, Delete returns ErrUserDeleteFailed.
+// On success, Delete returns nil.
+func (us *UserService) Delete(id, password string) error {
+	user, err := us.usersRepo.FindByID(id)
+	if errors.Is(err, ErrUserRepoNotFound) {
+		return ErrUserNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrUserDeleteFailed, err)
+	}
+
+	err = user.PasswordHash().Verify(password)
+	if errors.Is(err, vo.ErrPassowrdNotMatch) {
+		return ErrUserUnauthorized
+	}
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrUserDeleteFailed, err)
+	}
+
+	if err := us.usersRepo.Delete(id); err != nil {
+		return fmt.Errorf("%w: %s", ErrUserDeleteFailed, err)
 	}
 
 	return nil
