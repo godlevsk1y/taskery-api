@@ -92,13 +92,14 @@ var (
 // NewUserService creates a new instance of UserService with
 // given user repository. In case the given repository is nil,
 // NewUserService returns nil and an error.
-func NewUserService(usersRepo UserRepository) (*UserService, error) {
-	if usersRepo == nil {
+func NewUserService(usersRepo UserRepository, tokenProvider TokenProvider) (*UserService, error) {
+	if usersRepo == nil || tokenProvider == nil {
 		return nil, ErrUserRepositoryNil
 	}
 
 	return &UserService{
-		usersRepo: usersRepo,
+		usersRepo:     usersRepo,
+		tokenProvider: tokenProvider,
 	}, nil
 }
 
