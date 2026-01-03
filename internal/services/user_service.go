@@ -43,9 +43,14 @@ type TokenProvider interface {
 	Generate(userID string) (string, error)
 }
 
-// ErrUserRepositoryNil is an error that indicates that the user repository
-// that is passed to NewUserService is nil.
-var ErrUserRepositoryNil = errors.New("user repository is nil")
+var (
+	// ErrUserRepositoryNil is an error that indicates that the user repository
+	// that is passed to NewUserService is nil.
+	ErrUserRepositoryNil = errors.New("user repository is nil")
+	// ErrTokenProviderNil is an error that indicates that the token provider
+	// that is passed to NewUserService is nil.
+	ErrTokenProviderNil = errors.New("token provider is nil")
+)
 
 // Repository-level errors
 var (
@@ -93,8 +98,12 @@ var (
 // given user repository. In case the given repository is nil,
 // NewUserService returns nil and an error.
 func NewUserService(usersRepo UserRepository, tokenProvider TokenProvider) (*UserService, error) {
-	if usersRepo == nil || tokenProvider == nil {
+	if usersRepo == nil {
 		return nil, ErrUserRepositoryNil
+	}
+
+	if tokenProvider == nil {
+		return nil, ErrTokenProviderNil
 	}
 
 	return &UserService{
