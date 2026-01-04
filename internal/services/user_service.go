@@ -89,9 +89,9 @@ var (
 	// if the user does not have the necessary permissions to perform the operation.
 	ErrUserUnauthorized = errors.New("unauthorized access")
 
-	// ErrEmailAlreadyTaken is returned by UserService
+	// ErrUserEmailAlreadyTaken is returned by UserService
 	// if the email that is to change the old one is already taken.
-	ErrEmailAlreadyTaken = errors.New("email is already taken")
+	ErrUserEmailAlreadyTaken = errors.New("email is already taken")
 )
 
 // NewUserService creates a new instance of UserService with
@@ -226,7 +226,7 @@ func (us *UserService) ChangeEmail(id, newEmail, password string) error {
 
 	_, err = us.usersRepo.FindByEmail(newEmail)
 	if err == nil {
-		return ErrEmailAlreadyTaken
+		return ErrUserEmailAlreadyTaken
 	}
 	if !errors.Is(err, ErrUserNotFound) {
 		return fmt.Errorf("%w: %s", ErrUserChangeEmailFailed, err)

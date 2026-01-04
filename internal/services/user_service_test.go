@@ -304,7 +304,7 @@ func TestUserService_ChangeEmail(t *testing.T) {
 			password: "correct_pass",
 
 			// TODO: Rename ErrEmailAlreadyTaken error to ErrUserEmailTaken
-			wantErr: services.ErrEmailAlreadyTaken,
+			wantErr: services.ErrUserEmailAlreadyTaken,
 
 			mocksSetup: func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider) {
 				repo.On("FindByID", correctUser.ID().String()).
