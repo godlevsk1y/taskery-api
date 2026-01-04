@@ -253,7 +253,6 @@ func TestUserService_Login(t *testing.T) {
 
 func TestUserService_ChangeEmail(t *testing.T) {
 	correctUser, _ := models.NewUser("alex123", "correct@example.com", "correct_pass")
-	_ = correctUser
 
 	tests := []struct {
 		name     string
@@ -371,6 +370,108 @@ func TestUserService_ChangeEmail(t *testing.T) {
 			require.NotNil(t, us)
 
 			err = us.ChangeEmail(tt.id, tt.newEmail, tt.password)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestUserService_ChangePassword(t *testing.T) {
+	correctUser, _ := models.NewUser("alex123", "correct@example.com", "correct_pass")
+
+	tests := []struct {
+		name        string
+		id          string
+		oldPassword string
+		newPassword string
+
+		wantErr error
+
+		mocksSetup func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider)
+	}{
+		{
+			name:        "success",
+			id:          correctUser.ID().String(),
+			oldPassword: "correct_pass",
+			newPassword: "new_correct_pass",
+
+			wantErr: nil,
+
+			mocksSetup: func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider) {
+				repo.On("FindByID", correctUser.ID().String()).
+					Once().
+					Return(correctUser, nil)
+
+				repo.On("Update", mock.AnythingOfType("*models.User")).
+					Once().
+					Return(nil)
+			},
+		},
+		{
+			name:        "not found by ID",
+			id:          "ID_OF_NOT_EXISTIN-18701294-124124",
+			oldPassword: "correct_pass",
+			newPassword: "new_correct_pass",
+
+			wantErr: services.ErrUserNotFound,
+
+			mocksSetup: func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider) {
+				repo.On("FindByID", "ID_OF_NOT_EXISTIN-18701294-124124").
+					Once().
+					Return(nil, services.ErrUserRepoNotFound)
+			},
+		},
+		{
+			name:        "password mismatch",
+			id:          correctUser.ID().String(),
+			oldPassword: "INCORRECT_PASS123",
+			newPassword: "new_correct_pass",
+
+			wantErr: services.ErrUserUnauthorized,
+
+			mocksSetup: func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider) {
+				repo.On("FindByID", correctUser.ID().String()).
+					Once().
+					Return(correctUser, nil)
+			},
+		},
+		{
+			name:        "update internal error",
+			id:          correctUser.ID().String(),
+			oldPassword: "correct_pass",
+			newPassword: "new_correct_pass",
+
+			wantErr: services.ErrUserChangePasswordFailed,
+
+			mocksSetup: func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider) {
+				repo.On("FindByID", correctUser.ID().String()).
+					Once().
+					Return(correctUser, nil)
+
+				repo.On("Update", mock.AnythingOfType("*models.User")).
+					Once().
+					Return(errors.New("failed to load db"))
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := new(mocks.UserRepository)
+			tokenProvider := new(mocks.TokenProvider)
+			if tt.mocksSetup != nil {
+				tt.mocksSetup(repo, tokenProvider)
+			}
+
+			us, err := services.NewUserService(repo, tokenProvider)
+			require.NoError(t, err)
+			require.NotNil(t, us)
+
+			err = us.ChangePassword(tt.id, tt.oldPassword, tt.newPassword)
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
 				return
