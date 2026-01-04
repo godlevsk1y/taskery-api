@@ -262,8 +262,12 @@ func (us *UserService) ChangePassword(id, old, new string) error {
 		return fmt.Errorf("%w: %s", ErrUserChangePasswordFailed, err)
 	}
 
-	if err := user.ChangePassword(old, new); err != nil {
-		return err
+	err = user.ChangePassword(old, new)
+	if errors.Is(err, vo.ErrPassowrdNotMatch) {
+		return ErrUserUnauthorized
+	}
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrUserChangePasswordFailed, err)
 	}
 
 	if err := us.usersRepo.Update(user); err != nil {
