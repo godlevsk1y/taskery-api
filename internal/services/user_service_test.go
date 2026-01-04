@@ -250,3 +250,130 @@ func TestUserService_Login(t *testing.T) {
 		})
 	}
 }
+
+func TestUserService_ChangeEmail(t *testing.T) {
+	correctUser, _ := models.NewUser("alex123", "correct@example.com", "correct_pass")
+	_ = correctUser
+
+	tests := []struct {
+		name     string
+		id       string
+		newEmail string
+		password string
+
+		wantErr error
+
+		mocksSetup func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider)
+	}{
+		{
+			name:     "success",
+			id:       correctUser.ID().String(),
+			newEmail: "new@example.com",
+			password: "correct_pass",
+
+			wantErr: nil,
+
+			mocksSetup: func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider) {
+				repo.On("FindByID", correctUser.ID().String()).
+					Once().
+					Return(correctUser, nil)
+
+				repo.On("FindByEmail", "new@example.com").
+					Once().
+					Return(nil, services.ErrUserRepoNotFound)
+			},
+		},
+		{
+			name:     "not found by ID",
+			id:       "ID_OF_NOT_EXISTIN-18701294-124124",
+			newEmail: "new@example.com",
+			password: "correct_pass",
+
+			wantErr: services.ErrUserNotFound,
+
+			mocksSetup: func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider) {
+				repo.On("FindByID", mock.AnythingOfType("string")).
+					Once().
+					Return(nil, services.ErrUserRepoNotFound)
+			},
+		},
+		{
+			name:     "new email is taken",
+			id:       correctUser.ID().String(),
+			newEmail: "new@example.com",
+			password: "correct_pass",
+
+			// TODO: Rename ErrEmailAlreadyTaken error to ErrUserEmailTaken
+			wantErr: services.ErrEmailAlreadyTaken,
+
+			mocksSetup: func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider) {
+				repo.On("FindByID", correctUser.ID().String()).
+					Once().
+					Return(correctUser, nil)
+
+				repo.On("FindByEmail", "new@example.com").
+					Once().
+					Return(&models.User{}, nil)
+			},
+		},
+		{
+			name:     "FindByEmail internal error",
+			id:       correctUser.ID().String(),
+			newEmail: "new@example.com",
+			password: "correct_pass",
+
+			wantErr: services.ErrUserChangeEmailFailed,
+
+			mocksSetup: func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider) {
+				repo.On("FindByID", correctUser.ID().String()).
+					Once().
+					Return(correctUser, nil)
+
+				repo.On("FindByEmail", "new@example.com").
+					Once().
+					Return(nil, errors.New("failed to load db"))
+			},
+		},
+		{
+			name:     "password not match",
+			id:       correctUser.ID().String(),
+			newEmail: "new@example.com",
+			password: "INCORRECT_PASS",
+
+			wantErr: services.ErrUserUnauthorized,
+
+			mocksSetup: func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider) {
+				repo.On("FindByID", correctUser.ID().String()).
+					Once().
+					Return(correctUser, nil)
+
+				repo.On("FindByEmail", "new@example.com").
+					Maybe().
+					Once().
+					Return(nil, services.ErrUserRepoNotFound)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := new(mocks.UserRepository)
+			tokenProvider := new(mocks.TokenProvider)
+			if tt.mocksSetup != nil {
+				tt.mocksSetup(repo, tokenProvider)
+			}
+
+			us, err := services.NewUserService(repo, tokenProvider)
+			require.NoError(t, err)
+			require.NotNil(t, us)
+
+			err = us.ChangeEmail(tt.id, tt.newEmail, tt.password)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+}
