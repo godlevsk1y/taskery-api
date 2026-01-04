@@ -391,7 +391,7 @@ func TestUserService_ChangePassword(t *testing.T) {
 
 		wantErr error
 
-		mocksSetup func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider)
+		mocksSetup func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider, userToReturn *models.User)
 	}{
 		{
 			name:        "success",
@@ -401,10 +401,10 @@ func TestUserService_ChangePassword(t *testing.T) {
 
 			wantErr: nil,
 
-			mocksSetup: func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider) {
+			mocksSetup: func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider, userToReturn *models.User) {
 				repo.On("FindByID", correctUser.ID().String()).
 					Once().
-					Return(correctUser, nil)
+					Return(userToReturn, nil)
 
 				repo.On("Update", mock.AnythingOfType("*models.User")).
 					Once().
@@ -419,7 +419,7 @@ func TestUserService_ChangePassword(t *testing.T) {
 
 			wantErr: services.ErrUserNotFound,
 
-			mocksSetup: func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider) {
+			mocksSetup: func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider, userToReturn *models.User) {
 				repo.On("FindByID", "ID_OF_NOT_EXISTIN-18701294-124124").
 					Once().
 					Return(nil, services.ErrUserRepoNotFound)
@@ -433,10 +433,10 @@ func TestUserService_ChangePassword(t *testing.T) {
 
 			wantErr: services.ErrUserUnauthorized,
 
-			mocksSetup: func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider) {
+			mocksSetup: func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider, userToReturn *models.User) {
 				repo.On("FindByID", correctUser.ID().String()).
 					Once().
-					Return(correctUser, nil)
+					Return(userToReturn, nil)
 			},
 		},
 		{
@@ -447,10 +447,10 @@ func TestUserService_ChangePassword(t *testing.T) {
 
 			wantErr: services.ErrUserChangePasswordFailed,
 
-			mocksSetup: func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider) {
+			mocksSetup: func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider, userToReturn *models.User) {
 				repo.On("FindByID", correctUser.ID().String()).
 					Once().
-					Return(correctUser, nil)
+					Return(userToReturn, nil)
 
 				repo.On("Update", mock.AnythingOfType("*models.User")).
 					Once().
@@ -463,8 +463,11 @@ func TestUserService_ChangePassword(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			repo := new(mocks.UserRepository)
 			tokenProvider := new(mocks.TokenProvider)
+
+			userCopy := *correctUser
+
 			if tt.mocksSetup != nil {
-				tt.mocksSetup(repo, tokenProvider)
+				tt.mocksSetup(repo, tokenProvider, &userCopy)
 			}
 
 			us, err := services.NewUserService(repo, tokenProvider)
