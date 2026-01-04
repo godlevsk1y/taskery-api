@@ -281,6 +281,10 @@ func TestUserService_ChangeEmail(t *testing.T) {
 				repo.On("FindByEmail", "new@example.com").
 					Once().
 					Return(nil, services.ErrUserRepoNotFound)
+
+				repo.On("Update", mock.AnythingOfType("*models.User")).
+					Once().
+					Return(nil)
 			},
 		},
 		{
@@ -303,7 +307,6 @@ func TestUserService_ChangeEmail(t *testing.T) {
 			newEmail: "new@example.com",
 			password: "correct_pass",
 
-			// TODO: Rename ErrEmailAlreadyTaken error to ErrUserEmailTaken
 			wantErr: services.ErrUserEmailAlreadyTaken,
 
 			mocksSetup: func(repo *mocks.UserRepository, tokenProvider *mocks.TokenProvider) {
