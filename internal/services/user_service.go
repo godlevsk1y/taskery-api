@@ -228,7 +228,7 @@ func (us *UserService) ChangeEmail(id, newEmail, password string) error {
 	if err == nil {
 		return ErrUserEmailAlreadyTaken
 	}
-	if !errors.Is(err, ErrUserNotFound) {
+	if !errors.Is(err, ErrUserRepoNotFound) {
 		return fmt.Errorf("%w: %s", ErrUserChangeEmailFailed, err)
 	}
 
