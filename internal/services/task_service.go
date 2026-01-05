@@ -1,6 +1,10 @@
 package services
 
-import "github.com/cyberbrain-dev/taskery-api/internal/domain/task/models"
+import (
+	"context"
+
+	"github.com/cyberbrain-dev/taskery-api/internal/domain/task/models"
+)
 
 // TaskService is a service that handles task operations.
 type TaskService struct {
@@ -12,17 +16,17 @@ type TaskService struct {
 type TaskRepository interface {
 	// Create saves a new task in the repository.
 	// Returns an error if the operation fails.
-	Create(task *models.Task) error
+	Create(ctx context.Context, task *models.Task) error
 
 	// FindByID retrieves a task by its unique identifier.
 	// Returns the task and nil error if found, otherwise returns nil and an error.
-	FindByID(id string) (*models.Task, error)
+	FindByID(ctx context.Context, id string) (*models.Task, error)
 
 	// Update modifies an existing task's data in the repository.
 	// Returns an error if the operation fails or the task does not exist.
-	Update(task *models.Task) error
+	Update(ctx context.Context, task *models.Task) error
 
 	// Delete removes a user from the repository by their unique identifier.
 	// Returns an error if the operation fails or the user does not exist.
-	Delete(id string) error
+	Delete(ctx context.Context, id string) error
 }

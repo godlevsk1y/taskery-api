@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -19,23 +20,23 @@ type UserService struct {
 type UserRepository interface {
 	// Create saves a new user in the repository.
 	// Returns an error if the operation fails.
-	Create(u *models.User) error
+	Create(ctx context.Context, u *models.User) error
 
 	// FindByID retrieves a user by its unique identifier.
 	// Returns the user and nil error if found, otherwise returns nil and an error.
-	FindByID(id string) (*models.User, error)
+	FindByID(ctx context.Context, id string) (*models.User, error)
 
 	// FindByEmail retrieves a user by their email address.
 	// Returns the user and nil error if found, otherwise returns nil and an error.
-	FindByEmail(email string) (*models.User, error)
+	FindByEmail(ctx context.Context, email string) (*models.User, error)
 
 	// Update modifies an existing user's data in the repository.
 	// Returns an error if the operation fails or the user does not exist.
-	Update(u *models.User) error
+	Update(ctx context.Context, u *models.User) error
 
 	// Delete removes a user from the repository by their unique identifier.
 	// Returns an error if the operation fails or the user does not exist.
-	Delete(id string) error
+	Delete(ctx context.Context, id string) error
 }
 
 // TokenProvider defines the interface for generating authentication tokens.
@@ -115,13 +116,13 @@ func NewUserService(usersRepo UserRepository, tokenProvider TokenProvider) (*Use
 // Register creates a new user with the given username, email, and password.
 // Returns ErrUserExists if a user with the same identifier exists,
 // or ErrUserCreateFailed for other creation errors.
-func (us *UserService) Register(username, email, password string) error {
+func (us *UserService) Register(ctx context.Context, username, email, password string) error {
 	user, err := models.NewUser(username, email, password)
 	if err != nil {
 		return err
 	}
 
-	if err := us.usersRepo.Create(user); err != nil {
+	if err := us.usersRepo.Create(ctx, user); err != nil {
 		if errors.Is(err, ErrUserRepoExists) {
 			return ErrUserExists
 		}
@@ -138,8 +139,8 @@ func (us *UserService) Register(username, email, password string) error {
 // If no user exists with the given email, Login returns ErrUserNotFound.
 // If the password does not match, Login returns ErrUserUnauthorized.
 // If token generation or repository access fails, Login returns ErrUserLoginFailed.
-func (us *UserService) Login(email, password string) (string, error) {
-	user, err := us.usersRepo.FindByEmail(email)
+func (us *UserService) Login(ctx context.Context, email, password string) (string, error) {
+	user, err := us.usersRepo.FindByEmail(ctx, email)
 	if errors.Is(err, ErrUserRepoNotFound) {
 		return "", ErrUserNotFound
 	}
@@ -171,8 +172,8 @@ func (us *UserService) Login(email, password string) (string, error) {
 // If updating the user fails, it returns an error wrapping ErrUserChangeEmailFailed.
 //
 // On success, ChangeUsername returns nil.
-func (us *UserService) ChangeUsername(id, newUsername, password string) error {
-	user, err := us.usersRepo.FindByID(id)
+func (us *UserService) ChangeUsername(ctx context.Context, id, newUsername, password string) error {
+	user, err := us.usersRepo.FindByID(ctx, id)
 	if errors.Is(err, ErrUserRepoNotFound) {
 		return ErrUserNotFound
 	}
@@ -189,7 +190,7 @@ func (us *UserService) ChangeUsername(id, newUsername, password string) error {
 		return err
 	}
 
-	if err := us.usersRepo.Update(user); err != nil {
+	if err := us.usersRepo.Update(ctx, user); err != nil {
 		return fmt.Errorf("%w: %s", ErrUserChangeEmailFailed, err)
 	}
 
@@ -207,8 +208,8 @@ func (us *UserService) ChangeUsername(id, newUsername, password string) error {
 // ErrUserChangeEmailFailed.
 //
 // On success, ChangeEmail returns nil.
-func (us *UserService) ChangeEmail(id, newEmail, password string) error {
-	user, err := us.usersRepo.FindByID(id)
+func (us *UserService) ChangeEmail(ctx context.Context, id, newEmail, password string) error {
+	user, err := us.usersRepo.FindByID(ctx, id)
 	if errors.Is(err, ErrUserRepoNotFound) {
 		return ErrUserNotFound
 	}
@@ -224,7 +225,7 @@ func (us *UserService) ChangeEmail(id, newEmail, password string) error {
 		return fmt.Errorf("%w: %s", ErrUserChangeEmailFailed, err)
 	}
 
-	_, err = us.usersRepo.FindByEmail(newEmail)
+	_, err = us.usersRepo.FindByEmail(ctx, newEmail)
 	if err == nil {
 		return ErrUserEmailAlreadyTaken
 	}
@@ -236,7 +237,7 @@ func (us *UserService) ChangeEmail(id, newEmail, password string) error {
 		return err
 	}
 
-	if err := us.usersRepo.Update(user); err != nil {
+	if err := us.usersRepo.Update(ctx, user); err != nil {
 		return fmt.Errorf("%w: %s", ErrUserChangeEmailFailed, err)
 	}
 
@@ -253,8 +254,8 @@ func (us *UserService) ChangeEmail(id, newEmail, password string) error {
 // ErrUserChangePasswordFailed.
 //
 // On success, ChangePassword returns nil.
-func (us *UserService) ChangePassword(id, old, new string) error {
-	user, err := us.usersRepo.FindByID(id)
+func (us *UserService) ChangePassword(ctx context.Context, id, old, new string) error {
+	user, err := us.usersRepo.FindByID(ctx, id)
 	if errors.Is(err, ErrUserRepoNotFound) {
 		return ErrUserNotFound
 	}
@@ -270,7 +271,7 @@ func (us *UserService) ChangePassword(id, old, new string) error {
 		return fmt.Errorf("%w: %s", ErrUserChangePasswordFailed, err)
 	}
 
-	if err := us.usersRepo.Update(user); err != nil {
+	if err := us.usersRepo.Update(ctx, user); err != nil {
 		return fmt.Errorf("%w: %s", ErrUserChangePasswordFailed, err)
 	}
 
@@ -283,8 +284,8 @@ func (us *UserService) ChangePassword(id, old, new string) error {
 // It returns ErrUserUnauthorized if the password does not match.
 // If the deletion fails for any other reason, Delete returns ErrUserDeleteFailed.
 // On success, Delete returns nil.
-func (us *UserService) Delete(id, password string) error {
-	user, err := us.usersRepo.FindByID(id)
+func (us *UserService) Delete(ctx context.Context, id, password string) error {
+	user, err := us.usersRepo.FindByID(ctx, id)
 	if errors.Is(err, ErrUserRepoNotFound) {
 		return ErrUserNotFound
 	}
@@ -300,7 +301,7 @@ func (us *UserService) Delete(id, password string) error {
 		return fmt.Errorf("%w: %s", ErrUserDeleteFailed, err)
 	}
 
-	if err := us.usersRepo.Delete(id); err != nil {
+	if err := us.usersRepo.Delete(ctx, id); err != nil {
 		return fmt.Errorf("%w: %s", ErrUserDeleteFailed, err)
 	}
 
