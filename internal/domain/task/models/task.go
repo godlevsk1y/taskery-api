@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"time"
 
 	"github.com/cyberbrain-dev/taskery-api/internal/domain/task/vo"
@@ -43,8 +42,8 @@ func (t *Task) CompletedAt() *time.Time {
 		return nil
 	}
 
-	copy := *t.completedAt
-	return &copy
+	completedAtCopy := *t.completedAt
+	return &completedAtCopy
 }
 
 // NewTask creates a new Task instance with the given title, description, and owner. It does not set a deadline.
@@ -110,7 +109,7 @@ func (t *Task) ChangeDescription(newDescription string) error {
 }
 
 // SetDeadline sets the deadline in case it is not already set or edits the deadline.
-func (t *Task) SetDealine(deadline time.Time) error {
+func (t *Task) SetDeadline(deadline time.Time) error {
 	deadlineVO, err := vo.NewDeadline(deadline)
 	if err != nil {
 		return err
@@ -120,13 +119,10 @@ func (t *Task) SetDealine(deadline time.Time) error {
 	return nil
 }
 
-// IsDeadlineSet checks if the task has a deadline set.
+// HasDeadline checks if the task has a deadline set.
 func (t *Task) HasDeadline() bool {
 	return t.deadline != nil
 }
-
-// ErrDeadlineNotSet represents a case when the caller tries to perform operations on a deadline that is not set.
-var ErrDeadlineNotSet = errors.New("deadline not set")
 
 // RemoveDeadline removes the deadline from the task if it is set.
 func (t *Task) RemoveDeadline() {

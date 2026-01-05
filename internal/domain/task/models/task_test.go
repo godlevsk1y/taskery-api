@@ -173,7 +173,7 @@ func TestTask_SetDeadline(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			task := &models.Task{}
 
-			err := task.SetDealine(tt.deadline)
+			err := task.SetDeadline(tt.deadline)
 
 			if tt.expectedErr != nil {
 				require.Error(t, err)

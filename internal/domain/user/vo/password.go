@@ -25,11 +25,11 @@ var (
 	ErrPasswordInvalid  = errors.New("password is invalid")
 	ErrPasswordHashing  = errors.New("failed to hash password")
 
-	// ErrPasswordVerifyFailed is returned if an error occured during password verification
+	// ErrPasswordVerifyFailed is returned if an error occurred during password verification
 	ErrPasswordVerifyFailed = errors.New("failed to verify the password")
 
-	// ErrPassowrdNotMatch is returned if the password does not match the hash
-	ErrPassowrdNotMatch = errors.New("password does not match the hash")
+	// ErrPasswordNotMatch is returned if the password does not match the hash
+	ErrPasswordNotMatch = errors.New("password does not match the hash")
 )
 
 // NewPassword creates a new Password instance.
@@ -72,7 +72,7 @@ func NewPasswordFromHash(hash []byte) Password {
 func (p Password) Verify(raw string) error {
 	err := bcrypt.CompareHashAndPassword(p.value, []byte(raw))
 	if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-		return ErrPassowrdNotMatch
+		return ErrPasswordNotMatch
 	}
 	if err != nil {
 		return fmt.Errorf("%w: %s", ErrPasswordVerifyFailed, err)

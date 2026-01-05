@@ -70,19 +70,19 @@ var (
 	// ErrUserNotFound is returned by UserService if the user was not found in the repository
 	ErrUserNotFound = errors.New("user was not found")
 
-	// ErrUserRegisterFailed is returned by UserService if an internal error occured during creation
+	// ErrUserRegisterFailed is returned by UserService if an internal error occurred during creation
 	ErrUserRegisterFailed = errors.New("failed to create user")
 
-	// ErrUserLoginFailed is returned by UserService if an internal error occured during login
+	// ErrUserLoginFailed is returned by UserService if an internal error occurred during login
 	ErrUserLoginFailed = errors.New("failed to login")
 
-	// ErrUserChangeEmailFailed is returned by UserService if an internal error occured during email editing
+	// ErrUserChangeEmailFailed is returned by UserService if an internal error occurred during email editing
 	ErrUserChangeEmailFailed = errors.New("failed to change email")
 
-	// ErrUserChangePasswordFailed is returned by UserService if an internal error occured during password editing
+	// ErrUserChangePasswordFailed is returned by UserService if an internal error occurred during password editing
 	ErrUserChangePasswordFailed = errors.New("failed to change password")
 
-	// ErrUserDeleteFailed is returned by UserService if an internal error occured during deletion
+	// ErrUserDeleteFailed is returned by UserService if an internal error occurred during deletion
 	ErrUserDeleteFailed = errors.New("failed to delete user")
 
 	// ErrUserUnauthorized is returned by UserService
@@ -148,7 +148,7 @@ func (us *UserService) Login(email, password string) (string, error) {
 	}
 
 	err = user.PasswordHash().Verify(password)
-	if errors.Is(err, vo.ErrPassowrdNotMatch) {
+	if errors.Is(err, vo.ErrPasswordNotMatch) {
 		return "", ErrUserUnauthorized
 	}
 	if err != nil {
@@ -181,7 +181,7 @@ func (us *UserService) ChangeUsername(id, newUsername, password string) error {
 	}
 
 	err = user.PasswordHash().Verify(password)
-	if errors.Is(err, vo.ErrPassowrdNotMatch) {
+	if errors.Is(err, vo.ErrPasswordNotMatch) {
 		return ErrUserUnauthorized
 	}
 
@@ -217,7 +217,7 @@ func (us *UserService) ChangeEmail(id, newEmail, password string) error {
 	}
 
 	err = user.PasswordHash().Verify(password)
-	if errors.Is(err, vo.ErrPassowrdNotMatch) {
+	if errors.Is(err, vo.ErrPasswordNotMatch) {
 		return ErrUserUnauthorized
 	}
 	if err != nil {
@@ -263,7 +263,7 @@ func (us *UserService) ChangePassword(id, old, new string) error {
 	}
 
 	err = user.ChangePassword(old, new)
-	if errors.Is(err, vo.ErrPassowrdNotMatch) {
+	if errors.Is(err, vo.ErrPasswordNotMatch) {
 		return ErrUserUnauthorized
 	}
 	if err != nil {
@@ -293,7 +293,7 @@ func (us *UserService) Delete(id, password string) error {
 	}
 
 	err = user.PasswordHash().Verify(password)
-	if errors.Is(err, vo.ErrPassowrdNotMatch) {
+	if errors.Is(err, vo.ErrPasswordNotMatch) {
 		return ErrUserUnauthorized
 	}
 	if err != nil {
