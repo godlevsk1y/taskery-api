@@ -147,6 +147,97 @@ func TestNewTaskWithDeadline(t *testing.T) {
 	}
 }
 
+func TestNewTaskFromDB(t *testing.T) {
+	now := time.Now()
+	future := now.Add(24 * time.Hour)
+
+	validID := uuid.New()
+	validOwner := uuid.New()
+
+	tests := []struct {
+		name    string
+		params  models.TaskFromDBParams
+		wantErr bool
+	}{
+		{
+			name: "success without deadline and not completed",
+			params: models.TaskFromDBParams{
+				ID:          validID,
+				Owner:       validOwner,
+				Title:       "Valid title",
+				Description: "Valid description",
+				Deadline:    nil,
+				IsCompleted: false,
+				CompletedAt: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "success with deadline and completed",
+			params: models.TaskFromDBParams{
+				ID:          validID,
+				Owner:       validOwner,
+				Title:       "Valid title",
+				Description: "Valid description",
+				Deadline:    &future,
+				IsCompleted: true,
+				CompletedAt: &now,
+			},
+			wantErr: false,
+		},
+		{
+			name: "error when completed but completedAt is nil",
+			params: models.TaskFromDBParams{
+				ID:          validID,
+				Owner:       validOwner,
+				Title:       "Valid title",
+				Description: "Valid description",
+				IsCompleted: true,
+				CompletedAt: nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "error when not completed but completedAt is set",
+			params: models.TaskFromDBParams{
+				ID:          validID,
+				Owner:       validOwner,
+				Title:       "Valid title",
+				Description: "Valid description",
+				IsCompleted: false,
+				CompletedAt: &now,
+			},
+			wantErr: true,
+		},
+		{
+			name: "error when deadline is invalid",
+			params: models.TaskFromDBParams{
+				ID:          validID,
+				Owner:       validOwner,
+				Title:       "Valid title",
+				Description: "Valid description",
+				Deadline:    &now, // предполагаем, что прошедший дедлайн невалиден
+				IsCompleted: false,
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			task, err := models.NewTaskFromDB(tt.params)
+
+			if tt.wantErr {
+				require.Error(t, err)
+				require.Nil(t, task)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, task)
+			}
+		})
+	}
+}
+
 func TestTask_SetDeadline(t *testing.T) {
 	validDeadline := time.Now().Add(24 * time.Hour)
 	invalidDeadline := time.Time{}
