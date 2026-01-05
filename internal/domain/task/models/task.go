@@ -1,6 +1,8 @@
 package models
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/cyberbrain-dev/taskery-api/internal/domain/task/vo"
@@ -46,6 +48,8 @@ func (t *Task) CompletedAt() *time.Time {
 	return &completedAtCopy
 }
 
+var ErrTaskFailedCreateFromDB = errors.New("failed to create task from DB")
+
 // NewTask creates a new Task instance with the given title, description, and owner. It does not set a deadline.
 func NewTask(title string, description string, owner uuid.UUID) (*Task, error) {
 	titleVO, err := vo.NewTitle(title)
@@ -70,6 +74,70 @@ func NewTask(title string, description string, owner uuid.UUID) (*Task, error) {
 		isCompleted: false,
 		completedAt: nil,
 	}, nil
+}
+
+// TaskFromDBParams contains raw task data loaded from the database.
+//
+// This struct is used as an input for constructing a domain Task
+// from persisted storage. All fields represent database values
+// and may require validation or transformation before being used
+// inside the domain model.
+type TaskFromDBParams struct {
+	ID    uuid.UUID
+	Owner uuid.UUID
+
+	Title       string
+	Description string
+
+	Deadline *time.Time
+
+	IsCompleted bool
+	CompletedAt *time.Time
+}
+
+// NewTaskFromDB creates a Task from database parameters.
+// It validates that the completedAt and isCompleted fields are consistent:
+// completedAt must be non-nil if and only if isCompleted is true.
+// It returns an error if any of the value objects (title, description, deadline) fail to be created.
+//
+// If p.Deadline is not nil, the deadline field of the Task will be set.
+func NewTaskFromDB(p TaskFromDBParams) (*Task, error) {
+	if (p.IsCompleted && p.CompletedAt == nil) || (!p.IsCompleted && p.CompletedAt != nil) {
+		return nil, fmt.Errorf("%w: %s", ErrTaskFailedCreateFromDB, "completedAt and isCompleted fields contradict")
+	}
+
+	titleVO, err := vo.NewTitle(p.Title)
+	if err != nil {
+		return nil, err
+	}
+
+	descriptionVO, err := vo.NewDescription(p.Description)
+	if err != nil {
+		return nil, err
+	}
+
+	task := &Task{
+		id:          p.ID,
+		owner:       p.Owner,
+		title:       titleVO,
+		description: descriptionVO,
+
+		deadline: nil,
+
+		isCompleted: p.IsCompleted,
+		completedAt: p.CompletedAt,
+	}
+
+	if p.Deadline != nil {
+		deadlineVO, err := vo.NewDeadline(*p.Deadline)
+		if err != nil {
+			return nil, err
+		}
+
+		task.deadline = &deadlineVO
+	}
+
+	return task, nil
 }
 
 // NewTaskWithDeadline creates a new Task instance with the given title, description, owner, and deadline.
