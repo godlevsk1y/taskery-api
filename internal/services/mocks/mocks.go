@@ -40,16 +40,16 @@ func (_m *TaskRepository) EXPECT() *TaskRepository_Expecter {
 }
 
 // Create provides a mock function for the type TaskRepository
-func (_mock *TaskRepository) Create(task *models.Task) error {
-	ret := _mock.Called(task)
+func (_mock *TaskRepository) Create(ctx context.Context, task *models.Task) error {
+	ret := _mock.Called(ctx, task)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(*models.Task) error); ok {
-		r0 = returnFunc(task)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.Task) error); ok {
+		r0 = returnFunc(ctx, task)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -62,19 +62,25 @@ type TaskRepository_Create_Call struct {
 }
 
 // Create is a helper method to define mock.On call
+//   - ctx context.Context
 //   - task *models.Task
-func (_e *TaskRepository_Expecter) Create(task interface{}) *TaskRepository_Create_Call {
-	return &TaskRepository_Create_Call{Call: _e.mock.On("Create", task)}
+func (_e *TaskRepository_Expecter) Create(ctx interface{}, task interface{}) *TaskRepository_Create_Call {
+	return &TaskRepository_Create_Call{Call: _e.mock.On("Create", ctx, task)}
 }
 
-func (_c *TaskRepository_Create_Call) Run(run func(task *models.Task)) *TaskRepository_Create_Call {
+func (_c *TaskRepository_Create_Call) Run(run func(ctx context.Context, task *models.Task)) *TaskRepository_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 *models.Task
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(*models.Task)
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.Task
+		if args[1] != nil {
+			arg1 = args[1].(*models.Task)
 		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -85,22 +91,22 @@ func (_c *TaskRepository_Create_Call) Return(err error) *TaskRepository_Create_C
 	return _c
 }
 
-func (_c *TaskRepository_Create_Call) RunAndReturn(run func(task *models.Task) error) *TaskRepository_Create_Call {
+func (_c *TaskRepository_Create_Call) RunAndReturn(run func(ctx context.Context, task *models.Task) error) *TaskRepository_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Delete provides a mock function for the type TaskRepository
-func (_mock *TaskRepository) Delete(id string) error {
-	ret := _mock.Called(id)
+func (_mock *TaskRepository) Delete(ctx context.Context, id string) error {
+	ret := _mock.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Delete")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(string) error); ok {
-		r0 = returnFunc(id)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, id)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -113,19 +119,25 @@ type TaskRepository_Delete_Call struct {
 }
 
 // Delete is a helper method to define mock.On call
+//   - ctx context.Context
 //   - id string
-func (_e *TaskRepository_Expecter) Delete(id interface{}) *TaskRepository_Delete_Call {
-	return &TaskRepository_Delete_Call{Call: _e.mock.On("Delete", id)}
+func (_e *TaskRepository_Expecter) Delete(ctx interface{}, id interface{}) *TaskRepository_Delete_Call {
+	return &TaskRepository_Delete_Call{Call: _e.mock.On("Delete", ctx, id)}
 }
 
-func (_c *TaskRepository_Delete_Call) Run(run func(id string)) *TaskRepository_Delete_Call {
+func (_c *TaskRepository_Delete_Call) Run(run func(ctx context.Context, id string)) *TaskRepository_Delete_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(string)
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
 		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -136,14 +148,14 @@ func (_c *TaskRepository_Delete_Call) Return(err error) *TaskRepository_Delete_C
 	return _c
 }
 
-func (_c *TaskRepository_Delete_Call) RunAndReturn(run func(id string) error) *TaskRepository_Delete_Call {
+func (_c *TaskRepository_Delete_Call) RunAndReturn(run func(ctx context.Context, id string) error) *TaskRepository_Delete_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // FindByID provides a mock function for the type TaskRepository
-func (_mock *TaskRepository) FindByID(id string) (*models.Task, error) {
-	ret := _mock.Called(id)
+func (_mock *TaskRepository) FindByID(ctx context.Context, id string) (*models.Task, error) {
+	ret := _mock.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindByID")
@@ -151,18 +163,18 @@ func (_mock *TaskRepository) FindByID(id string) (*models.Task, error) {
 
 	var r0 *models.Task
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string) (*models.Task, error)); ok {
-		return returnFunc(id)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*models.Task, error)); ok {
+		return returnFunc(ctx, id)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string) *models.Task); ok {
-		r0 = returnFunc(id)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *models.Task); ok {
+		r0 = returnFunc(ctx, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Task)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
-		r1 = returnFunc(id)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -175,19 +187,25 @@ type TaskRepository_FindByID_Call struct {
 }
 
 // FindByID is a helper method to define mock.On call
+//   - ctx context.Context
 //   - id string
-func (_e *TaskRepository_Expecter) FindByID(id interface{}) *TaskRepository_FindByID_Call {
-	return &TaskRepository_FindByID_Call{Call: _e.mock.On("FindByID", id)}
+func (_e *TaskRepository_Expecter) FindByID(ctx interface{}, id interface{}) *TaskRepository_FindByID_Call {
+	return &TaskRepository_FindByID_Call{Call: _e.mock.On("FindByID", ctx, id)}
 }
 
-func (_c *TaskRepository_FindByID_Call) Run(run func(id string)) *TaskRepository_FindByID_Call {
+func (_c *TaskRepository_FindByID_Call) Run(run func(ctx context.Context, id string)) *TaskRepository_FindByID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(string)
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
 		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -198,22 +216,22 @@ func (_c *TaskRepository_FindByID_Call) Return(task *models.Task, err error) *Ta
 	return _c
 }
 
-func (_c *TaskRepository_FindByID_Call) RunAndReturn(run func(id string) (*models.Task, error)) *TaskRepository_FindByID_Call {
+func (_c *TaskRepository_FindByID_Call) RunAndReturn(run func(ctx context.Context, id string) (*models.Task, error)) *TaskRepository_FindByID_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Update provides a mock function for the type TaskRepository
-func (_mock *TaskRepository) Update(task *models.Task) error {
-	ret := _mock.Called(task)
+func (_mock *TaskRepository) Update(ctx context.Context, task *models.Task) error {
+	ret := _mock.Called(ctx, task)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(*models.Task) error); ok {
-		r0 = returnFunc(task)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.Task) error); ok {
+		r0 = returnFunc(ctx, task)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -226,19 +244,25 @@ type TaskRepository_Update_Call struct {
 }
 
 // Update is a helper method to define mock.On call
+//   - ctx context.Context
 //   - task *models.Task
-func (_e *TaskRepository_Expecter) Update(task interface{}) *TaskRepository_Update_Call {
-	return &TaskRepository_Update_Call{Call: _e.mock.On("Update", task)}
+func (_e *TaskRepository_Expecter) Update(ctx interface{}, task interface{}) *TaskRepository_Update_Call {
+	return &TaskRepository_Update_Call{Call: _e.mock.On("Update", ctx, task)}
 }
 
-func (_c *TaskRepository_Update_Call) Run(run func(task *models.Task)) *TaskRepository_Update_Call {
+func (_c *TaskRepository_Update_Call) Run(run func(ctx context.Context, task *models.Task)) *TaskRepository_Update_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 *models.Task
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(*models.Task)
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.Task
+		if args[1] != nil {
+			arg1 = args[1].(*models.Task)
 		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -249,7 +273,7 @@ func (_c *TaskRepository_Update_Call) Return(err error) *TaskRepository_Update_C
 	return _c
 }
 
-func (_c *TaskRepository_Update_Call) RunAndReturn(run func(task *models.Task) error) *TaskRepository_Update_Call {
+func (_c *TaskRepository_Update_Call) RunAndReturn(run func(ctx context.Context, task *models.Task) error) *TaskRepository_Update_Call {
 	_c.Call.Return(run)
 	return _c
 }
