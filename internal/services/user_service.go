@@ -127,7 +127,7 @@ func (us *UserService) Register(ctx context.Context, username, email, password s
 			return ErrUserExists
 		}
 
-		return ErrUserRegisterFailed
+		return fmt.Errorf("%w: %s", ErrUserRegisterFailed, err)
 	}
 
 	return nil
