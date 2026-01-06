@@ -88,6 +88,12 @@ type CreateTaskCommand struct {
 	Deadline    *time.Time
 }
 
+// Create creates a new task with the given title, description, and owner.
+// If cmd.Deadline is provided, the task will have a deadline; otherwise, it will be created without one.
+//
+// Create returns ErrTaskExists if the task already exists,
+// ErrTaskOwnerNotFound if the specified owner does not exist,
+// or ErrTaskCreateFailed if the repository fails to create the task.
 func (ts *TaskService) Create(ctx context.Context, cmd CreateTaskCommand) error {
 	var task *models.Task
 	var err error
