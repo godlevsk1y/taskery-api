@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 
 	"github.com/cyberbrain-dev/taskery-api/internal/domain/task/models"
 )
@@ -29,4 +30,18 @@ type TaskRepository interface {
 	// Delete removes a user from the repository by their unique identifier.
 	// Returns an error if the operation fails or the user does not exist.
 	Delete(ctx context.Context, id string) error
+}
+
+var (
+	ErrTaskRepositoryNil = errors.New("tasks repository is nil")
+)
+
+// NewTaskService creates a new TaskService instance.
+// It returns nil and error if the task repository is nil
+func NewTaskService(tasksRepo TaskRepository) (*TaskService, error) {
+	if tasksRepo == nil {
+		return nil, ErrTaskRepositoryNil
+	}
+
+	return &TaskService{tasksRepo}, nil
 }
