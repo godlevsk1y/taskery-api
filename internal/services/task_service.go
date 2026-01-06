@@ -103,7 +103,11 @@ func (ts *TaskService) Create(ctx context.Context, cmd CreateTaskCommand) error 
 
 	if err := ts.tasksRepo.Create(ctx, task); err != nil {
 		if errors.Is(err, ErrTaskRepoExists) {
-			return ErrTaskRepoExists
+			return ErrTaskExists
+		}
+
+		if errors.Is(err, ErrTaskRepoOwnerNotFound) {
+			return ErrTaskOwnerNotFound
 		}
 
 		return fmt.Errorf("%w: %s", ErrTaskCreateFailed, err)
