@@ -3,8 +3,11 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/cyberbrain-dev/taskery-api/internal/domain/task/models"
+	"github.com/google/uuid"
 )
 
 // TaskService is a service that handles task operations.
@@ -32,8 +35,27 @@ type TaskRepository interface {
 	Delete(ctx context.Context, id string) error
 }
 
+// ErrTaskRepositoryNil is an error that indicates that the task repository
+// that is passed to NewTaskService is nil.
+var ErrTaskRepositoryNil = errors.New("task repository is nil")
+
+// Repository-level errors
 var (
-	ErrTaskRepositoryNil = errors.New("tasks repository is nil")
+	// ErrTaskRepoExists is returned by repository if the task
+	// that is to be added to the repository already exists there
+	ErrTaskRepoExists = errors.New("task already exists in the repository")
+
+	// ErrTaskRepoNotFound is returned by repository if the task was not found there
+	ErrTaskRepoNotFound = errors.New("user was not found in the repository")
+
+	// ErrTaskCreateFailed is returned by TaskService if an internal error occurred during creation
+	ErrTaskCreateFailed = errors.New("failed to create task")
+)
+
+// Application-level errors
+var (
+	// ErrTaskExists is returned by TaskService if the task that is to be added already exists
+	ErrTaskExists = errors.New("task already exists")
 )
 
 // NewTaskService creates a new TaskService instance.
@@ -44,4 +66,40 @@ func NewTaskService(tasksRepo TaskRepository) (*TaskService, error) {
 	}
 
 	return &TaskService{tasksRepo}, nil
+}
+
+// CreateTaskCommand contains all data required to create a new Task.
+// It is used as input for TaskService.Create method.
+//
+// Title, Description, and OwnerID are required. Deadline is optional;
+// if no deadline is needed, set it to nil.
+type CreateTaskCommand struct {
+	Title       string
+	Description string
+	OwnerID     uuid.UUID
+	Deadline    *time.Time
+}
+
+func (ts *TaskService) Create(ctx context.Context, cmd CreateTaskCommand) error {
+	var task *models.Task
+	var err error
+
+	if cmd.Deadline == nil {
+		task, err = models.NewTask(cmd.Title, cmd.Description, cmd.OwnerID)
+	} else {
+		task, err = models.NewTaskWithDeadline(cmd.Title, cmd.Description, cmd.OwnerID, *cmd.Deadline)
+	}
+	if err != nil {
+		return err
+	}
+
+	if err := ts.tasksRepo.Create(ctx, task); err != nil {
+		if errors.Is(err, ErrTaskRepoExists) {
+			return ErrTaskRepoExists
+		}
+
+		return fmt.Errorf("%w: %s", ErrTaskCreateFailed, err)
+	}
+
+	return nil
 }
