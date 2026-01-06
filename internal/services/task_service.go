@@ -48,14 +48,22 @@ var (
 	// ErrTaskRepoNotFound is returned by repository if the task was not found there
 	ErrTaskRepoNotFound = errors.New("user was not found in the repository")
 
-	// ErrTaskCreateFailed is returned by TaskService if an internal error occurred during creation
-	ErrTaskCreateFailed = errors.New("failed to create task")
+	// ErrTaskRepoOwnerNotFound is returned by repository
+	// when the owner with the given ID does not exist there.
+	ErrTaskRepoOwnerNotFound = errors.New("owner was not found in the repository")
 )
 
 // Application-level errors
 var (
 	// ErrTaskExists is returned by TaskService if the task that is to be added already exists
 	ErrTaskExists = errors.New("task already exists")
+
+	// ErrTaskOwnerNotFound is returned by TaskService
+	// when an operation cannot be completed because the owner with the given ID does not exist.
+	ErrTaskOwnerNotFound = errors.New("owner was not found")
+
+	// ErrTaskCreateFailed is returned by TaskService if an internal error occurred during creation
+	ErrTaskCreateFailed = errors.New("failed to create task")
 )
 
 // NewTaskService creates a new TaskService instance.
