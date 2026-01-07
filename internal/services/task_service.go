@@ -67,6 +67,10 @@ var (
 
 	// ErrTaskChangeTitleFailed is returned by TaskService if an internal error occurred during editing the title
 	ErrTaskChangeTitleFailed = errors.New("change title failed")
+
+	// ErrTaskChangeDescriptionFailed is returned by TaskService
+	// if an internal error occurred during editing the description
+	ErrTaskChangeDescriptionFailed = errors.New("change description failed")
 )
 
 // NewTaskService creates a new TaskService instance.
@@ -150,6 +154,36 @@ func (ts *TaskService) ChangeTitle(ctx context.Context, id string, new string) e
 
 	if err := ts.tasksRepo.Update(ctx, task); err != nil {
 		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
+	}
+
+	return nil
+}
+
+// ChangeDescription updates the description of the task identified by id.
+//
+// It loads the task from the repository, applies the new description,
+// and persists the updated task.
+//
+// ChangeDescription returns ErrTaskRepoNotFound if no task with the given
+// id exists. It returns ErrTaskChangeDescriptionFailed if the description
+// cannot be changed or if the updated task cannot be saved.
+//
+// The operation respects the provided context ctx.
+func (ts *TaskService) ChangeDescription(ctx context.Context, id string, new string) error {
+	task, err := ts.tasksRepo.FindByID(ctx, id)
+	if errors.Is(err, ErrTaskRepoNotFound) {
+		return ErrTaskRepoNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
+	}
+
+	if err := task.ChangeDescription(new); err != nil {
+		return fmt.Errorf("%w: %s", ErrTaskChangeDescriptionFailed, err)
+	}
+
+	if err := ts.tasksRepo.Update(ctx, task); err != nil {
+		return fmt.Errorf("%w: %s", ErrTaskChangeDescriptionFailed, err)
 	}
 
 	return nil
