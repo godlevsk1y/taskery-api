@@ -64,6 +64,9 @@ var (
 
 	// ErrTaskCreateFailed is returned by TaskService if an internal error occurred during creation
 	ErrTaskCreateFailed = errors.New("failed to create task")
+
+	// ErrTaskChangeTitleFailed is returned by TaskService if an internal error occurred during editing the title
+	ErrTaskChangeTitleFailed = errors.New("change title failed")
 )
 
 // NewTaskService creates a new TaskService instance.
@@ -117,6 +120,36 @@ func (ts *TaskService) Create(ctx context.Context, cmd CreateTaskCommand) error 
 		}
 
 		return fmt.Errorf("%w: %s", ErrTaskCreateFailed, err)
+	}
+
+	return nil
+}
+
+// ChangeTitle changes the title of the task with the given id.
+//
+// It looks up the task in the repository, validates and applies the new
+// title, and persists the updated task back to the repository.
+//
+// If the task with the given id does not exist, ChangeTitle returns
+// ErrTaskRepoNotFound. If updating the task fails due to a repository
+// error, it returns ErrTaskChangeTitleFailed wrapping the underlying error.
+//
+// Validation errors returned by task.ChangeTitle are propagated as-is.
+func (ts *TaskService) ChangeTitle(ctx context.Context, id string, new string) error {
+	task, err := ts.tasksRepo.FindByID(ctx, id)
+	if errors.Is(err, ErrTaskRepoNotFound) {
+		return ErrTaskRepoNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
+	}
+
+	if err := task.ChangeTitle(new); err != nil {
+		return err
+	}
+
+	if err := ts.tasksRepo.Update(ctx, task); err != nil {
+		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
 	}
 
 	return nil
