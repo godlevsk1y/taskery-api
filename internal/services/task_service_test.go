@@ -244,7 +244,7 @@ func TestTaskService_SetDeadline(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			taskToReturn, err := models.NewTaskFromDB(models.TaskFromDBParams{
 				ID:          realTaskID,
-				Owner:       uuid.New(),
+				OwnerID:     uuid.New(),
 				Title:       "Some Title",
 				Description: "Some Description",
 				Deadline:    tt.previousDeadline,

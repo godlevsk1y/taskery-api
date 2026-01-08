@@ -163,7 +163,7 @@ func TestNewTaskFromDB(t *testing.T) {
 			name: "success without deadline and not completed",
 			params: models.TaskFromDBParams{
 				ID:          validID,
-				Owner:       validOwner,
+				OwnerID:     validOwner,
 				Title:       "Valid title",
 				Description: "Valid description",
 				Deadline:    nil,
@@ -176,7 +176,7 @@ func TestNewTaskFromDB(t *testing.T) {
 			name: "success with deadline and completed",
 			params: models.TaskFromDBParams{
 				ID:          validID,
-				Owner:       validOwner,
+				OwnerID:     validOwner,
 				Title:       "Valid title",
 				Description: "Valid description",
 				Deadline:    &future,
@@ -189,7 +189,7 @@ func TestNewTaskFromDB(t *testing.T) {
 			name: "error when completed but completedAt is nil",
 			params: models.TaskFromDBParams{
 				ID:          validID,
-				Owner:       validOwner,
+				OwnerID:     validOwner,
 				Title:       "Valid title",
 				Description: "Valid description",
 				IsCompleted: true,
@@ -201,7 +201,7 @@ func TestNewTaskFromDB(t *testing.T) {
 			name: "error when not completed but completedAt is set",
 			params: models.TaskFromDBParams{
 				ID:          validID,
-				Owner:       validOwner,
+				OwnerID:     validOwner,
 				Title:       "Valid title",
 				Description: "Valid description",
 				IsCompleted: false,
@@ -213,7 +213,7 @@ func TestNewTaskFromDB(t *testing.T) {
 			name: "error when deadline is invalid",
 			params: models.TaskFromDBParams{
 				ID:          validID,
-				Owner:       validOwner,
+				OwnerID:     validOwner,
 				Title:       "Valid title",
 				Description: "Valid description",
 				Deadline:    &now, // предполагаем, что прошедший дедлайн невалиден

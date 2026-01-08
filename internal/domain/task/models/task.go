@@ -83,9 +83,8 @@ func NewTask(title string, description string, owner uuid.UUID) (*Task, error) {
 // and may require validation or transformation before being used
 // inside the domain model.
 type TaskFromDBParams struct {
-	ID uuid.UUID
-	// TODO: rename this to OwnerID
-	Owner uuid.UUID
+	ID      uuid.UUID
+	OwnerID uuid.UUID
 
 	Title       string
 	Description string
@@ -119,7 +118,7 @@ func NewTaskFromDB(p TaskFromDBParams) (*Task, error) {
 
 	task := &Task{
 		id:          p.ID,
-		owner:       p.Owner,
+		owner:       p.OwnerID,
 		title:       titleVO,
 		description: descriptionVO,
 
