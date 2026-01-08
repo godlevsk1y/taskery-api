@@ -188,3 +188,31 @@ func (ts *TaskService) ChangeDescription(ctx context.Context, id string, new str
 
 	return nil
 }
+
+// SetDeadline sets or updates the deadline of the task with the given id.
+//
+// It loads the task from the repository, applies the new deadline value,
+// and persists the updated task.
+//
+// SetDeadline returns ErrTaskRepoNotFound if the task does not exist.
+// It returns an error if the deadline value is invalid or if the task
+// cannot be updated in the repository.
+func (ts *TaskService) SetDeadline(ctx context.Context, id string, deadline time.Time) error {
+	task, err := ts.tasksRepo.FindByID(ctx, id)
+	if errors.Is(err, ErrTaskRepoNotFound) {
+		return ErrTaskRepoNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
+	}
+
+	if err := task.SetDeadline(deadline); err != nil {
+		return err
+	}
+
+	if err := ts.tasksRepo.Update(ctx, task); err != nil {
+		return fmt.Errorf("%w: %s", ErrTaskChangeDescriptionFailed, err)
+	}
+
+	return nil
+}
