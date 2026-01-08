@@ -216,3 +216,31 @@ func (ts *TaskService) SetDeadline(ctx context.Context, id string, deadline time
 
 	return nil
 }
+
+// RemoveDeadline removes the deadline from the task with the given id.
+//
+// It looks up the task in the repository, clears its deadline, and
+// persists the updated task.
+//
+// RemoveDeadline returns ErrTaskRepoNotFound if a task with the given
+// id does not exist. It returns a wrapped error if fetching or updating
+// the task fails for any other reason.
+func (ts *TaskService) RemoveDeadline(ctx context.Context, id string) error {
+	task, err := ts.tasksRepo.FindByID(ctx, id)
+	if errors.Is(err, ErrTaskRepoNotFound) {
+		return ErrTaskRepoNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
+	}
+
+	task.RemoveDeadline()
+
+	if err := ts.tasksRepo.Update(ctx, task); err != nil {
+		return fmt.Errorf("%w: %s", ErrTaskChangeDescriptionFailed, err)
+	}
+
+	return nil
+}
+
+// ! TODO: FIX THE ERROR ErrTaskNotFound
