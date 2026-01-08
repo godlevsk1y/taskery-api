@@ -177,6 +177,7 @@ func TestTaskService_Create(t *testing.T) {
 
 func TestTaskService_SetDeadline(t *testing.T) {
 	realTaskID := uuid.New()
+	realOwnerID := uuid.New()
 	validDeadline := time.Now().Add(1 * time.Hour)
 
 	tests := []struct {
@@ -244,7 +245,7 @@ func TestTaskService_SetDeadline(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			taskToReturn, err := models.NewTaskFromDB(models.TaskFromDBParams{
 				ID:          realTaskID,
-				OwnerID:     uuid.New(),
+				OwnerID:     realOwnerID,
 				Title:       "Some Title",
 				Description: "Some Description",
 				Deadline:    tt.previousDeadline,
@@ -264,7 +265,7 @@ func TestTaskService_SetDeadline(t *testing.T) {
 			require.NotNil(t, service)
 
 			ctx := context.Background()
-			err = service.SetDeadline(ctx, tt.id, tt.deadline)
+			err = service.SetDeadline(ctx, tt.id, realOwnerID.String(), tt.deadline)
 
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)

@@ -74,6 +74,10 @@ var (
 	// ErrTaskChangeDescriptionFailed is returned by TaskService
 	// if an internal error occurred during editing the description
 	ErrTaskChangeDescriptionFailed = errors.New("change description failed")
+
+	// ErrTaskAccessDenied is returned when an operation on a task is not allowed
+	// because the caller does not have permission to access the task.
+	ErrTaskAccessDenied = errors.New("task access denied")
 )
 
 // NewTaskService creates a new TaskService instance.
@@ -142,13 +146,17 @@ func (ts *TaskService) Create(ctx context.Context, cmd CreateTaskCommand) error 
 // error, it returns ErrTaskChangeTitleFailed wrapping the underlying error.
 //
 // Validation errors returned by task.ChangeTitle are propagated as-is.
-func (ts *TaskService) ChangeTitle(ctx context.Context, id string, new string) error {
+func (ts *TaskService) ChangeTitle(ctx context.Context, id string, ownerID string, new string) error {
 	task, err := ts.tasksRepo.FindByID(ctx, id)
 	if errors.Is(err, ErrTaskRepoNotFound) {
 		return ErrTaskNotFound
 	}
 	if err != nil {
 		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
+	}
+
+	if task.Owner().String() != ownerID {
+		return ErrTaskAccessDenied
 	}
 
 	if err := task.ChangeTitle(new); err != nil {
@@ -172,13 +180,17 @@ func (ts *TaskService) ChangeTitle(ctx context.Context, id string, new string) e
 // cannot be changed or if the updated task cannot be saved.
 //
 // The operation respects the provided context ctx.
-func (ts *TaskService) ChangeDescription(ctx context.Context, id string, new string) error {
+func (ts *TaskService) ChangeDescription(ctx context.Context, id string, ownerID string, new string) error {
 	task, err := ts.tasksRepo.FindByID(ctx, id)
 	if errors.Is(err, ErrTaskNotFound) {
 		return ErrTaskRepoNotFound
 	}
 	if err != nil {
 		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
+	}
+
+	if task.Owner().String() != ownerID {
+		return ErrTaskAccessDenied
 	}
 
 	if err := task.ChangeDescription(new); err != nil {
@@ -200,13 +212,17 @@ func (ts *TaskService) ChangeDescription(ctx context.Context, id string, new str
 // SetDeadline returns ErrTaskRepoNotFound if the task does not exist.
 // It returns an error if the deadline value is invalid or if the task
 // cannot be updated in the repository.
-func (ts *TaskService) SetDeadline(ctx context.Context, id string, deadline time.Time) error {
+func (ts *TaskService) SetDeadline(ctx context.Context, id string, ownerID string, deadline time.Time) error {
 	task, err := ts.tasksRepo.FindByID(ctx, id)
 	if errors.Is(err, ErrTaskRepoNotFound) {
 		return ErrTaskNotFound
 	}
 	if err != nil {
 		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
+	}
+
+	if task.Owner().String() != ownerID {
+		return ErrTaskAccessDenied
 	}
 
 	if err := task.SetDeadline(deadline); err != nil {
@@ -228,13 +244,17 @@ func (ts *TaskService) SetDeadline(ctx context.Context, id string, deadline time
 // RemoveDeadline returns ErrTaskRepoNotFound if a task with the given
 // id does not exist. It returns a wrapped error if fetching or updating
 // the task fails for any other reason.
-func (ts *TaskService) RemoveDeadline(ctx context.Context, id string) error {
+func (ts *TaskService) RemoveDeadline(ctx context.Context, id string, ownerID string) error {
 	task, err := ts.tasksRepo.FindByID(ctx, id)
 	if errors.Is(err, ErrTaskRepoNotFound) {
 		return ErrTaskNotFound
 	}
 	if err != nil {
 		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
+	}
+
+	if task.Owner().String() != ownerID {
+		return ErrTaskAccessDenied
 	}
 
 	task.RemoveDeadline()
