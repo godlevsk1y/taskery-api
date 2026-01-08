@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cyberbrain-dev/taskery-api/internal/domain/task/models"
 	"github.com/cyberbrain-dev/taskery-api/internal/domain/task/vo"
 	"github.com/cyberbrain-dev/taskery-api/internal/services"
 	"github.com/cyberbrain-dev/taskery-api/internal/services/mocks"
@@ -164,6 +165,107 @@ func TestTaskService_Create(t *testing.T) {
 
 			ctx := context.Background()
 			err = service.Create(ctx, tt.cmd)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestTaskService_SetDeadline(t *testing.T) {
+	realTaskID := uuid.New()
+	validDeadline := time.Now().Add(1 * time.Hour)
+
+	tests := []struct {
+		name             string
+		id               string
+		previousDeadline *time.Time
+		deadline         time.Time
+
+		wantErr error
+
+		mocksSetup func(repo *mocks.TaskRepository, taskToReturn *models.Task)
+	}{
+		{
+			name:             "success without deadline before",
+			id:               realTaskID.String(),
+			previousDeadline: nil,
+			deadline:         time.Now().Add(1 * time.Hour),
+
+			wantErr: nil,
+
+			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
+				repo.On("FindByID", mock.Anything, realTaskID.String()).
+					Once().
+					Return(taskToReturn, nil)
+
+				repo.On("Update", mock.Anything, mock.AnythingOfType("*models.Task")).
+					Once().
+					Return(nil)
+			},
+		},
+		{
+			name:             "success with existing deadline before",
+			id:               realTaskID.String(),
+			previousDeadline: &validDeadline,
+			deadline:         time.Now().Add(1 * time.Hour),
+
+			wantErr: nil,
+
+			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
+				repo.On("FindByID", mock.Anything, realTaskID.String()).
+					Once().
+					Return(taskToReturn, nil)
+
+				repo.On("Update", mock.Anything, mock.AnythingOfType("*models.Task")).
+					Once().
+					Return(nil)
+			},
+		},
+		{
+			name:     "invalid deadline",
+			id:       realTaskID.String(),
+			deadline: time.Now().Add(-1 * time.Hour),
+
+			wantErr: vo.ErrDeadlineBeforeNow,
+
+			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
+				repo.On("FindByID", mock.Anything, realTaskID.String()).
+					Once().
+					Return(taskToReturn, nil)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			taskToReturn, err := models.NewTaskFromDB(models.TaskFromDBParams{
+				ID:          realTaskID,
+				Owner:       uuid.New(),
+				Title:       "Some Title",
+				Description: "Some Description",
+				Deadline:    tt.previousDeadline,
+				IsCompleted: false,
+				CompletedAt: nil,
+			})
+			require.NoError(t, err)
+			require.NotNil(t, taskToReturn)
+
+			repo := new(mocks.TaskRepository)
+			if tt.mocksSetup != nil {
+				tt.mocksSetup(repo, taskToReturn)
+			}
+
+			service, err := services.NewTaskService(repo)
+			require.NoError(t, err)
+			require.NotNil(t, service)
+
+			ctx := context.Background()
+			err = service.SetDeadline(ctx, tt.id, tt.deadline)
+
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
 				return
