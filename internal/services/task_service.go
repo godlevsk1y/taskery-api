@@ -58,6 +58,9 @@ var (
 	// ErrTaskExists is returned by TaskService if the task that is to be added already exists
 	ErrTaskExists = errors.New("task already exists")
 
+	// ErrTaskNotFound is returned by TaskService if the task was not found in the repository
+	ErrTaskNotFound = errors.New("user was not found")
+
 	// ErrTaskOwnerNotFound is returned by TaskService
 	// when an operation cannot be completed because the owner with the given ID does not exist.
 	ErrTaskOwnerNotFound = errors.New("owner was not found")
@@ -142,7 +145,7 @@ func (ts *TaskService) Create(ctx context.Context, cmd CreateTaskCommand) error 
 func (ts *TaskService) ChangeTitle(ctx context.Context, id string, new string) error {
 	task, err := ts.tasksRepo.FindByID(ctx, id)
 	if errors.Is(err, ErrTaskRepoNotFound) {
-		return ErrTaskRepoNotFound
+		return ErrTaskNotFound
 	}
 	if err != nil {
 		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
@@ -171,7 +174,7 @@ func (ts *TaskService) ChangeTitle(ctx context.Context, id string, new string) e
 // The operation respects the provided context ctx.
 func (ts *TaskService) ChangeDescription(ctx context.Context, id string, new string) error {
 	task, err := ts.tasksRepo.FindByID(ctx, id)
-	if errors.Is(err, ErrTaskRepoNotFound) {
+	if errors.Is(err, ErrTaskNotFound) {
 		return ErrTaskRepoNotFound
 	}
 	if err != nil {
@@ -200,7 +203,7 @@ func (ts *TaskService) ChangeDescription(ctx context.Context, id string, new str
 func (ts *TaskService) SetDeadline(ctx context.Context, id string, deadline time.Time) error {
 	task, err := ts.tasksRepo.FindByID(ctx, id)
 	if errors.Is(err, ErrTaskRepoNotFound) {
-		return ErrTaskRepoNotFound
+		return ErrTaskNotFound
 	}
 	if err != nil {
 		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
@@ -228,7 +231,7 @@ func (ts *TaskService) SetDeadline(ctx context.Context, id string, deadline time
 func (ts *TaskService) RemoveDeadline(ctx context.Context, id string) error {
 	task, err := ts.tasksRepo.FindByID(ctx, id)
 	if errors.Is(err, ErrTaskRepoNotFound) {
-		return ErrTaskRepoNotFound
+		return ErrTaskNotFound
 	}
 	if err != nil {
 		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
@@ -242,5 +245,3 @@ func (ts *TaskService) RemoveDeadline(ctx context.Context, id string) error {
 
 	return nil
 }
-
-// ! TODO: FIX THE ERROR ErrTaskNotFound
