@@ -194,8 +194,8 @@ func (ts *TaskService) ChangeTitle(ctx context.Context, id string, ownerID strin
 // The operation respects the provided context ctx.
 func (ts *TaskService) ChangeDescription(ctx context.Context, id string, ownerID string, new string) error {
 	task, err := ts.tasksRepo.FindByID(ctx, id)
-	if errors.Is(err, ErrTaskNotFound) {
-		return ErrTaskRepoNotFound
+	if errors.Is(err, ErrTaskRepoNotFound) {
+		return ErrTaskNotFound
 	}
 	if err != nil {
 		return fmt.Errorf("%w: %s", ErrTaskChangeDescriptionFailed, err)
@@ -284,8 +284,7 @@ func (ts *TaskService) RemoveDeadline(ctx context.Context, id string, ownerID st
 // If the task is owned by a different user than ownerID,
 // Complete returns ErrTaskAccessDenied.
 //
-// If updating the task fails, Complete returns an error
-// wrapping ErrTaskChangeTitleFailed or ErrTaskChangeDescriptionFailed.
+// If updating the task fails, Complete returns ErrTaskCompleteFailed
 func (ts *TaskService) Complete(ctx context.Context, id string, ownerID string) error {
 	task, err := ts.tasksRepo.FindByID(ctx, id)
 	if errors.Is(err, ErrTaskRepoNotFound) {
