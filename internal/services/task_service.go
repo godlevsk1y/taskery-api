@@ -69,11 +69,23 @@ var (
 	ErrTaskCreateFailed = errors.New("failed to create task")
 
 	// ErrTaskChangeTitleFailed is returned by TaskService if an internal error occurred during editing the title
-	ErrTaskChangeTitleFailed = errors.New("change title failed")
+	ErrTaskChangeTitleFailed = errors.New("failed to change title")
 
 	// ErrTaskChangeDescriptionFailed is returned by TaskService
 	// if an internal error occurred during editing the description
-	ErrTaskChangeDescriptionFailed = errors.New("change description failed")
+	ErrTaskChangeDescriptionFailed = errors.New("failed to change description")
+
+	// ErrTaskSetDeadlineFailed is returned by TaskService
+	// if an internal error occurred during setting the deadline
+	ErrTaskSetDeadlineFailed = errors.New("failed to set deadline")
+
+	// ErrTaskRemoveDeadlineFailed is returned by TaskService
+	// if an internal error occurred during removing the deadline
+	ErrTaskRemoveDeadlineFailed = errors.New("failed to remove deadline")
+
+	// ErrTaskCompleteFailed is returned by TaskService
+	// if an internal error occurred during completion of the task
+	ErrTaskCompleteFailed = errors.New("failed to complete task")
 
 	// ErrTaskAccessDenied is returned when an operation on a task is not allowed
 	// because the caller does not have permission to access the task.
@@ -186,7 +198,7 @@ func (ts *TaskService) ChangeDescription(ctx context.Context, id string, ownerID
 		return ErrTaskRepoNotFound
 	}
 	if err != nil {
-		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
+		return fmt.Errorf("%w: %s", ErrTaskChangeDescriptionFailed, err)
 	}
 
 	if task.Owner().String() != ownerID {
@@ -194,7 +206,7 @@ func (ts *TaskService) ChangeDescription(ctx context.Context, id string, ownerID
 	}
 
 	if err := task.ChangeDescription(new); err != nil {
-		return fmt.Errorf("%w: %s", ErrTaskChangeDescriptionFailed, err)
+		return err
 	}
 
 	if err := ts.tasksRepo.Update(ctx, task); err != nil {
@@ -218,7 +230,7 @@ func (ts *TaskService) SetDeadline(ctx context.Context, id string, ownerID strin
 		return ErrTaskNotFound
 	}
 	if err != nil {
-		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
+		return fmt.Errorf("%w: %s", ErrTaskSetDeadlineFailed, err)
 	}
 
 	if task.Owner().String() != ownerID {
@@ -230,7 +242,7 @@ func (ts *TaskService) SetDeadline(ctx context.Context, id string, ownerID strin
 	}
 
 	if err := ts.tasksRepo.Update(ctx, task); err != nil {
-		return fmt.Errorf("%w: %s", ErrTaskChangeDescriptionFailed, err)
+		return fmt.Errorf("%w: %s", ErrTaskSetDeadlineFailed, err)
 	}
 
 	return nil
@@ -250,7 +262,7 @@ func (ts *TaskService) RemoveDeadline(ctx context.Context, id string, ownerID st
 		return ErrTaskNotFound
 	}
 	if err != nil {
-		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
+		return fmt.Errorf("%w: %s", ErrTaskRemoveDeadlineFailed, err)
 	}
 
 	if task.Owner().String() != ownerID {
@@ -260,7 +272,7 @@ func (ts *TaskService) RemoveDeadline(ctx context.Context, id string, ownerID st
 	task.RemoveDeadline()
 
 	if err := ts.tasksRepo.Update(ctx, task); err != nil {
-		return fmt.Errorf("%w: %s", ErrTaskChangeDescriptionFailed, err)
+		return fmt.Errorf("%w: %s", ErrTaskRemoveDeadlineFailed, err)
 	}
 
 	return nil
@@ -280,7 +292,7 @@ func (ts *TaskService) Complete(ctx context.Context, id string, ownerID string) 
 		return ErrTaskNotFound
 	}
 	if err != nil {
-		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
+		return fmt.Errorf("%w: %s", ErrTaskCompleteFailed, err)
 	}
 
 	if task.Owner().String() != ownerID {
@@ -290,7 +302,7 @@ func (ts *TaskService) Complete(ctx context.Context, id string, ownerID string) 
 	task.Complete()
 
 	if err := ts.tasksRepo.Update(ctx, task); err != nil {
-		return fmt.Errorf("%w: %s", ErrTaskChangeDescriptionFailed, err)
+		return fmt.Errorf("%w: %s", ErrTaskCompleteFailed, err)
 	}
 
 	return nil
