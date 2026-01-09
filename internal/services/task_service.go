@@ -265,3 +265,33 @@ func (ts *TaskService) RemoveDeadline(ctx context.Context, id string, ownerID st
 
 	return nil
 }
+
+// Complete marks the task with the given id as completed.
+//
+// It returns ErrTaskNotFound if the task does not exist.
+// If the task is owned by a different user than ownerID,
+// Complete returns ErrTaskAccessDenied.
+//
+// If updating the task fails, Complete returns an error
+// wrapping ErrTaskChangeTitleFailed or ErrTaskChangeDescriptionFailed.
+func (ts *TaskService) Complete(ctx context.Context, id string, ownerID string) error {
+	task, err := ts.tasksRepo.FindByID(ctx, id)
+	if errors.Is(err, ErrTaskRepoNotFound) {
+		return ErrTaskNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
+	}
+
+	if task.Owner().String() != ownerID {
+		return ErrTaskAccessDenied
+	}
+
+	task.Complete()
+
+	if err := ts.tasksRepo.Update(ctx, task); err != nil {
+		return fmt.Errorf("%w: %s", ErrTaskChangeDescriptionFailed, err)
+	}
+
+	return nil
+}
