@@ -171,7 +171,7 @@ func (ts *TaskService) ChangeTitle(ctx context.Context, id string, ownerID strin
 		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
 	}
 
-	if task.Owner().String() != ownerID {
+	if task.OwnerID().String() != ownerID {
 		return ErrTaskAccessDenied
 	}
 
@@ -205,7 +205,7 @@ func (ts *TaskService) ChangeDescription(ctx context.Context, id string, ownerID
 		return fmt.Errorf("%w: %s", ErrTaskChangeDescriptionFailed, err)
 	}
 
-	if task.Owner().String() != ownerID {
+	if task.OwnerID().String() != ownerID {
 		return ErrTaskAccessDenied
 	}
 
@@ -237,7 +237,7 @@ func (ts *TaskService) SetDeadline(ctx context.Context, id string, ownerID strin
 		return fmt.Errorf("%w: %s", ErrTaskSetDeadlineFailed, err)
 	}
 
-	if task.Owner().String() != ownerID {
+	if task.OwnerID().String() != ownerID {
 		return ErrTaskAccessDenied
 	}
 
@@ -269,7 +269,7 @@ func (ts *TaskService) RemoveDeadline(ctx context.Context, id string, ownerID st
 		return fmt.Errorf("%w: %s", ErrTaskRemoveDeadlineFailed, err)
 	}
 
-	if task.Owner().String() != ownerID {
+	if task.OwnerID().String() != ownerID {
 		return ErrTaskAccessDenied
 	}
 
@@ -298,7 +298,7 @@ func (ts *TaskService) Complete(ctx context.Context, id string, ownerID string) 
 		return fmt.Errorf("%w: %s", ErrTaskCompleteFailed, err)
 	}
 
-	if task.Owner().String() != ownerID {
+	if task.OwnerID().String() != ownerID {
 		return ErrTaskAccessDenied
 	}
 
@@ -328,7 +328,7 @@ func (ts *TaskService) Reopen(ctx context.Context, id string, ownerID string) er
 		return fmt.Errorf("%w: %s", ErrTaskReopenFailed, err)
 	}
 
-	if task.Owner().String() != ownerID {
+	if task.OwnerID().String() != ownerID {
 		return ErrTaskAccessDenied
 	}
 

@@ -68,7 +68,7 @@ func TestNewTask(t *testing.T) {
 			require.NotNil(t, taskEntity)
 
 			require.NotEqual(t, uuid.Nil, taskEntity.ID())
-			require.Equal(t, tt.owner, taskEntity.Owner())
+			require.Equal(t, tt.owner, taskEntity.OwnerID())
 
 			require.Equal(t, tt.title, taskEntity.Title().String())
 			require.Equal(t, tt.description, taskEntity.Description().String())
