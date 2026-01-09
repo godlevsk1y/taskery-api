@@ -323,7 +323,7 @@ func TestTaskService_Complete(t *testing.T) {
 					Return(taskToReturn, nil)
 
 				repo.On("Update", mock.Anything, mock.AnythingOfType("*models.Task")).
-					Once().
+					Maybe().
 					Return(nil)
 			},
 		},

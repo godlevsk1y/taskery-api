@@ -298,6 +298,10 @@ func (ts *TaskService) Complete(ctx context.Context, id string, ownerID string) 
 		return ErrTaskAccessDenied
 	}
 
+	if task.IsCompleted() {
+		return nil
+	}
+
 	task.Complete()
 
 	if err := ts.tasksRepo.Update(ctx, task); err != nil {
