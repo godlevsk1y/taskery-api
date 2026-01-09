@@ -87,6 +87,10 @@ var (
 	// if an internal error occurred during completion of the task
 	ErrTaskCompleteFailed = errors.New("failed to complete task")
 
+	// ErrTaskReopenFailed is returned by TaskService
+	// if an internal error occurred during reopening of the task
+	ErrTaskReopenFailed = errors.New("failed to reopen task")
+
 	// ErrTaskAccessDenied is returned when an operation on a task is not allowed
 	// because the caller does not have permission to access the task.
 	ErrTaskAccessDenied = errors.New("task access denied")
@@ -306,6 +310,36 @@ func (ts *TaskService) Complete(ctx context.Context, id string, ownerID string) 
 
 	if err := ts.tasksRepo.Update(ctx, task); err != nil {
 		return fmt.Errorf("%w: %s", ErrTaskCompleteFailed, err)
+	}
+
+	return nil
+}
+
+// Reopen marks a completed task as not completed.
+// Returns ErrTaskNotFound if the task does not exist.
+// Returns ErrTaskAccessDenied if the ownerID does not match.
+// Returns ErrTaskReopenFailed if updating the task fails.
+func (ts *TaskService) Reopen(ctx context.Context, id string, ownerID string) error {
+	task, err := ts.tasksRepo.FindByID(ctx, id)
+	if errors.Is(err, ErrTaskRepoNotFound) {
+		return ErrTaskNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrTaskReopenFailed, err)
+	}
+
+	if task.Owner().String() != ownerID {
+		return ErrTaskAccessDenied
+	}
+
+	if !task.IsCompleted() {
+		return nil
+	}
+
+	task.Reopen()
+
+	if err := ts.tasksRepo.Update(ctx, task); err != nil {
+		return fmt.Errorf("%w: %s", ErrTaskReopenFailed, err)
 	}
 
 	return nil
