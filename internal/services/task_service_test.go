@@ -276,3 +276,136 @@ func TestTaskService_SetDeadline(t *testing.T) {
 		})
 	}
 }
+
+func TestTaskService_Complete(t *testing.T) {
+	realTaskID := uuid.New()
+	realOwnerID := uuid.New()
+	notRealTaskID := uuid.New()
+
+	realCompletedAt := time.Now().Add(-1 * time.Hour)
+
+	tests := []struct {
+		name    string
+		id      string
+		ownerID string
+
+		wasCompleted bool
+
+		wantErr error
+
+		mocksSetup func(repo *mocks.TaskRepository, taskToReturn *models.Task)
+	}{
+		{
+			name:         "success if not completed",
+			id:           realTaskID.String(),
+			ownerID:      realOwnerID.String(),
+			wasCompleted: false,
+			wantErr:      nil,
+			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
+				repo.On("FindByID", mock.Anything, realTaskID.String()).
+					Once().
+					Return(taskToReturn, nil)
+
+				repo.On("Update", mock.Anything, mock.AnythingOfType("*models.Task")).
+					Once().
+					Return(nil)
+			},
+		},
+		{
+			name:         "success if already completed",
+			id:           realTaskID.String(),
+			ownerID:      realOwnerID.String(),
+			wasCompleted: true,
+			wantErr:      nil,
+			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
+				repo.On("FindByID", mock.Anything, realTaskID.String()).
+					Once().
+					Return(taskToReturn, nil)
+
+				repo.On("Update", mock.Anything, mock.AnythingOfType("*models.Task")).
+					Once().
+					Return(nil)
+			},
+		},
+		{
+			name:         "task not found",
+			id:           notRealTaskID.String(),
+			ownerID:      realOwnerID.String(),
+			wasCompleted: false,
+			wantErr:      services.ErrTaskNotFound,
+			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
+				repo.On("FindByID", mock.Anything, notRealTaskID.String()).
+					Once().
+					Return(nil, services.ErrTaskRepoNotFound)
+			},
+		},
+		{
+			name:         "access denied",
+			id:           realTaskID.String(),
+			ownerID:      uuid.New().String(),
+			wasCompleted: true,
+			wantErr:      services.ErrTaskAccessDenied,
+			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
+				repo.On("FindByID", mock.Anything, realTaskID.String()).
+					Once().
+					Return(taskToReturn, nil)
+			},
+		},
+		{
+			name:         "update failed",
+			id:           realTaskID.String(),
+			ownerID:      realOwnerID.String(),
+			wasCompleted: false,
+			wantErr:      services.ErrTaskCompleteFailed,
+			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
+				repo.On("FindByID", mock.Anything, realTaskID.String()).
+					Once().
+					Return(taskToReturn, nil)
+
+				repo.On("Update", mock.Anything, mock.AnythingOfType("*models.Task")).
+					Once().
+					Return(errors.New("failed to connect to db"))
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var completedAt *time.Time = nil
+			if tt.wasCompleted {
+				completedAt = &realCompletedAt
+			}
+
+			taskToReturn, err := models.NewTaskFromDB(models.TaskFromDBParams{
+				ID:          realTaskID,
+				OwnerID:     realOwnerID,
+				Title:       "Some Title",
+				Description: "Some Description",
+				Deadline:    nil,
+				IsCompleted: tt.wasCompleted,
+				CompletedAt: completedAt,
+			})
+			require.NoError(t, err)
+			require.NotNil(t, taskToReturn)
+
+			repo := new(mocks.TaskRepository)
+			if tt.mocksSetup != nil {
+				tt.mocksSetup(repo, taskToReturn)
+			}
+
+			service, err := services.NewTaskService(repo)
+			require.NoError(t, err)
+			require.NotNil(t, service)
+
+			ctx := context.Background()
+			err = service.Complete(ctx, tt.id, tt.ownerID)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+				return
+			}
+
+			require.True(t, taskToReturn.IsCompleted())
+			require.NoError(t, err)
+		})
+	}
+}
