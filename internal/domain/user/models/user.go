@@ -76,8 +76,8 @@ type UserFromDBParams struct {
 }
 
 // NewUserFromDB creates a new User with a specified UUID.
-// It validates the ID and other user fields, converts them into value objects,
-// and hashes the password. Returns ErrUserIDInvalid if the UUID is invalid.
+// It validates the ID and other user fields, converts them into value objects.
+// Returns ErrUserIDInvalid if the UUID is invalid.
 func NewUserFromDB(p UserFromDBParams) (*User, error) {
 	usernameVO, err := vo.NewUsername(p.Username)
 	if err != nil {
