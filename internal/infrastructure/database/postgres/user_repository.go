@@ -55,17 +55,59 @@ func (ur *UserRepository) Create(ctx context.Context, u *models.User) error {
 			}
 		}
 
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("%s: create user: %w", op, err)
 	}
 
 	return nil
 }
 
-//func (ur *UserRepository) FindByID(ctx context.Context, id string) (*models.User, error) {
-//	//TODO implement me
-//	panic("implement me")
-//}
+// FindByID looks up a user by its id in the repository.
 //
+// It returns the corresponding *models.User if the user exists.
+// If no user with the given id is found, FindByID returns
+// services.ErrUserNotFound.
+//
+// If a database error occurs while querying or scanning the result,
+// or if the user cannot be restored from the persisted data,
+// FindByID returns a non-nil error wrapping the underlying failure.
+//
+// The operation respects the provided context ctx.
+func (ur *UserRepository) FindByID(ctx context.Context, id string) (*models.User, error) {
+	const op = "postgres.UserRepository.FindByID"
+
+	const query = `SELECT id, username, email, password_hash FROM users WHERE id = $1`
+
+	row := ur.db.QueryRowContext(ctx, query, id)
+
+	var (
+		userID       string
+		email        string
+		username     string
+		passwordHash string
+	)
+
+	err := row.Scan(&userID, &username, &email, &passwordHash)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, services.ErrUserNotFound
+		}
+
+		return nil, fmt.Errorf("%s: find by id: %w", op, err)
+	}
+
+	user, err := models.NewUserFromDB(models.UserFromDBParams{
+		ID:           userID,
+		Email:        email,
+		Username:     username,
+		PasswordHash: passwordHash,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%s: restore user: %w", op, err)
+	}
+
+	return user, nil
+}
+
 //func (ur *UserRepository) FindByEmail(ctx context.Context, email string) (*models.User, error) {
 //	//TODO implement me
 //	panic("implement me")
