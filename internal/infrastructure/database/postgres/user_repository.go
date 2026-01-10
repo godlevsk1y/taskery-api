@@ -89,7 +89,7 @@ func (ur *UserRepository) FindByID(ctx context.Context, id string) (*models.User
 	err := row.Scan(&userID, &username, &email, &passwordHash)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, services.ErrUserNotFound
+			return nil, services.ErrUserRepoNotFound
 		}
 
 		return nil, fmt.Errorf("%s: find by id: %w", op, err)
