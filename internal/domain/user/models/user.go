@@ -69,27 +69,40 @@ func NewUser(username, email, password string) (*User, error) {
 //
 // Password must contain a raw password
 type UserFromDBParams struct {
-	ID       string
-	Username string
-	Email    string
-	Password string
+	ID           string
+	Username     string
+	Email        string
+	PasswordHash string
 }
 
 // NewUserFromDB creates a new User with a specified UUID.
 // It validates the ID and other user fields, converts them into value objects,
 // and hashes the password. Returns ErrUserIDInvalid if the UUID is invalid.
 func NewUserFromDB(p UserFromDBParams) (*User, error) {
-	user, err := NewUser(p.Username, p.Email, p.Password)
+	usernameVO, err := vo.NewUsername(p.Username)
 	if err != nil {
 		return nil, err
 	}
+
+	emailVO, err := vo.NewEmail(p.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	passwordVO := vo.NewPasswordFromHash([]byte(p.PasswordHash))
 
 	parsedID, err := uuid.Parse(p.ID)
 	if err != nil {
 		return nil, ErrUserIDInvalid
 	}
 
-	user.id = parsedID
+	user := &User{
+		id:           parsedID,
+		username:     usernameVO,
+		email:        emailVO,
+		passwordHash: passwordVO,
+	}
+
 	return user, nil
 }
 

@@ -102,10 +102,10 @@ func TestNewUserFromDB(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			u, err := models.NewUserFromDB(models.UserFromDBParams{
-				ID:       tt.id,
-				Username: tt.username,
-				Email:    tt.email,
-				Password: tt.password,
+				ID:           tt.id,
+				Username:     tt.username,
+				Email:        tt.email,
+				PasswordHash: tt.password,
 			})
 			if tt.expectedErr != nil {
 				require.ErrorIs(t, err, tt.expectedErr)
@@ -119,7 +119,7 @@ func TestNewUserFromDB(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, parsed, u.ID())
 
-			require.NoError(t, u.PasswordHash().Verify(tt.password))
+			require.Equal(t, u.PasswordHash().String(), tt.password)
 		})
 	}
 }
