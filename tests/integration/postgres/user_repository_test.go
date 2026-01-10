@@ -85,10 +85,10 @@ func TestUserRepository_Create(t *testing.T) {
 	ctx := context.Background()
 
 	user, err := models.NewUserFromDB(models.UserFromDBParams{
-		ID:       uuid.New().String(),
-		Username: "Test User",
-		Email:    "test@example.com",
-		Password: "password123",
+		ID:           uuid.New().String(),
+		Username:     "Test User",
+		Email:        "test@example.com",
+		PasswordHash: "password123",
 	})
 	require.NoError(t, err)
 
