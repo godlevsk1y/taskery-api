@@ -108,10 +108,53 @@ func (ur *UserRepository) FindByID(ctx context.Context, id string) (*models.User
 	return user, nil
 }
 
-//func (ur *UserRepository) FindByEmail(ctx context.Context, email string) (*models.User, error) {
-//	//TODO implement me
-//	panic("implement me")
-//}
+// FindByEmail looks up a user by its email in the repository.
+//
+// It returns the corresponding *models.User if the user exists.
+// If no user with the given email is found, FindByEmail returns
+// services.ErrUserNotFound.
+//
+// If a database error occurs while querying or scanning the result,
+// or if the user cannot be restored from the persisted data,
+// FindByID returns a non-nil error wrapping the underlying failure.
+//
+// The operation respects the provided context ctx.
+func (ur *UserRepository) FindByEmail(ctx context.Context, email string) (*models.User, error) {
+	const op = "postgres.UserRepository.FindByID"
+
+	const query = `SELECT id, username, email, password_hash FROM users WHERE email = $1`
+
+	row := ur.db.QueryRowContext(ctx, query, email)
+
+	var (
+		userID       string
+		userEmail    string
+		username     string
+		passwordHash string
+	)
+
+	err := row.Scan(&userID, &username, &userEmail, &passwordHash)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, services.ErrUserRepoNotFound
+		}
+
+		return nil, fmt.Errorf("%s: find by email: %w", op, err)
+	}
+
+	user, err := models.NewUserFromDB(models.UserFromDBParams{
+		ID:           userID,
+		Email:        userEmail,
+		Username:     username,
+		PasswordHash: passwordHash,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%s: restore user: %w", op, err)
+	}
+
+	return user, nil
+}
+
 //
 //func (ur *UserRepository) Update(ctx context.Context, u *models.User) error {
 //	//TODO implement me
