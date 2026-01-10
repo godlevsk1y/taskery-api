@@ -11,6 +11,7 @@ import (
 
 	"github.com/cyberbrain-dev/taskery-api/internal/domain/user/models"
 	"github.com/cyberbrain-dev/taskery-api/internal/infrastructure/database/postgres"
+	"github.com/cyberbrain-dev/taskery-api/internal/services"
 	"github.com/docker/docker/api/types/container"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
@@ -95,6 +96,17 @@ func TestUserRepository_Create(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		err = repo.Create(ctx, user)
 		require.NoError(t, err)
+
+		var count int
+		err = db.QueryRow(`SELECT COUNT(*) FROM users`).Scan(&count)
+		require.NoError(t, err)
+
+		require.Equal(t, 1, count)
+	})
+
+	t.Run("user exists", func(t *testing.T) {
+		err = repo.Create(ctx, user) // this user was created in previous test
+		require.ErrorIs(t, err, services.ErrUserRepoExists)
 
 		var count int
 		err = db.QueryRow(`SELECT COUNT(*) FROM users`).Scan(&count)
