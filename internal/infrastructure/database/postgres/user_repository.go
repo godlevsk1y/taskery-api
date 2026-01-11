@@ -120,7 +120,7 @@ func (ur *UserRepository) FindByID(ctx context.Context, id string) (*models.User
 //
 // The operation respects the provided context ctx.
 func (ur *UserRepository) FindByEmail(ctx context.Context, email string) (*models.User, error) {
-	const op = "postgres.UserRepository.FindByID"
+	const op = "postgres.UserRepository.FindByEmail"
 
 	const query = `SELECT id, username, email, password_hash FROM users WHERE email = $1`
 
