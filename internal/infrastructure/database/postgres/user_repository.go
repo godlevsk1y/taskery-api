@@ -155,11 +155,35 @@ func (ur *UserRepository) FindByEmail(ctx context.Context, email string) (*model
 	return user, nil
 }
 
-//
-//func (ur *UserRepository) Update(ctx context.Context, u *models.User) error {
-//	//TODO implement me
-//	panic("implement me")
-//}
+func (ur *UserRepository) Update(ctx context.Context, u *models.User) error {
+	const op = "postgres.UserRepository.Update"
+
+	const query = `UPDATE users SET username = $1, email = $2, password_hash = $3 WHERE id = $4`
+
+	res, err := ur.db.ExecContext(
+		ctx,
+		query,
+		u.Username(),
+		u.Email(),
+		u.PasswordHash(),
+		u.ID(),
+	)
+	if err != nil {
+		return fmt.Errorf("%s: update user: %w", op, err)
+	}
+
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%s: get rows affected: %w", op, err)
+	}
+
+	if affected == 0 {
+		return services.ErrUserRepoNotFound
+	}
+
+	return nil
+}
+
 //
 //func (ur *UserRepository) Delete(ctx context.Context, id string) error {
 //	//TODO implement me
