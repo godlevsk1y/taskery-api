@@ -220,12 +220,12 @@ func TestUserRepository_Update(t *testing.T) {
 		err = userFromDB.ChangeUsername(newUsername)
 		require.NoError(t, err)
 
-		err = repo.Update(ctx, user)
+		err = repo.Update(ctx, userFromDB)
 		require.NoError(t, err)
 
-		userFromDB, err = repo.FindByID(ctx, user.ID().String())
+		updateUserFromDB, err := repo.FindByID(ctx, user.ID().String())
 		require.NoError(t, err)
 
-		require.Equal(t, userFromDB.Username().String(), newUsername)
+		require.Equal(t, newUsername, updateUserFromDB.Username().String())
 	})
 }
