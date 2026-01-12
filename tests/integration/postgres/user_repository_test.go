@@ -228,4 +228,17 @@ func TestUserRepository_Update(t *testing.T) {
 
 		require.Equal(t, newUsername, updateUserFromDB.Username().String())
 	})
+
+	t.Run("user not found", func(t *testing.T) {
+		notExistingUser, err := models.NewUserFromDB(models.UserFromDBParams{
+			ID:           uuid.New().String(),
+			Username:     "Not Existing User",
+			Email:        "no@example.com",
+			PasswordHash: "password123",
+		})
+		require.NoError(t, err)
+
+		err = repo.Update(ctx, notExistingUser)
+		require.ErrorIs(t, err, services.ErrUserRepoNotFound)
+	})
 }
