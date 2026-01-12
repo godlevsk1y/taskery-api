@@ -155,6 +155,19 @@ func (ur *UserRepository) FindByEmail(ctx context.Context, email string) (*model
 	return user, nil
 }
 
+// Update updates the persisted data of the given user u.
+//
+// It stores the user's current username, email, and password hash
+// identified by u.ID.
+//
+// If no user with the given ID exists, Update returns
+// services.ErrUserRepoNotFound.
+//
+// If a database error occurs while executing the update or determining
+// the number of affected rows, Update returns a non-nil error wrapping
+// the underlying failure.
+//
+// The operation respects the provided context ctx.
 func (ur *UserRepository) Update(ctx context.Context, u *models.User) error {
 	const op = "postgres.UserRepository.Update"
 
