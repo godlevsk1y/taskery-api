@@ -197,8 +197,31 @@ func (ur *UserRepository) Update(ctx context.Context, u *models.User) error {
 	return nil
 }
 
+// Delete removes the user with the given id from the repository.
 //
-//func (ur *UserRepository) Delete(ctx context.Context, id string) error {
-//	//TODO implement me
-//	panic("implement me")
-//}
+// If no user with the given id exists, Delete returns services.ErrUserRepoNotFound.
+// Any database or execution error encountered during the operation is returned
+// as a non-nil error.
+//
+// Delete respects the provided context ctx.
+func (ur *UserRepository) Delete(ctx context.Context, id string) error {
+	const op = "postgres.UserRepository.Delete"
+
+	const query = `DELETE FROM users WHERE id = $1`
+
+	res, err := ur.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("%s: delete user: %w", op, err)
+	}
+
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%s: get rows affected: %w", op, err)
+	}
+
+	if affected == 0 {
+		return services.ErrUserRepoNotFound
+	}
+
+	return nil
+}
