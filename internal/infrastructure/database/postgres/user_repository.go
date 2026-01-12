@@ -163,10 +163,10 @@ func (ur *UserRepository) Update(ctx context.Context, u *models.User) error {
 	res, err := ur.db.ExecContext(
 		ctx,
 		query,
-		u.Username(),
-		u.Email(),
-		u.PasswordHash(),
-		u.ID(),
+		u.Username().String(),
+		u.Email().String(),
+		u.PasswordHash().String(),
+		u.ID().String(),
 	)
 	if err != nil {
 		return fmt.Errorf("%s: update user: %w", op, err)
