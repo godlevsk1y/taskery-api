@@ -191,3 +191,41 @@ func TestUserRepository_FindByEmail(t *testing.T) {
 		require.Nil(t, userFromDB)
 	})
 }
+
+func TestUserRepository_Update(t *testing.T) {
+	db, cleanup := setupPostgres(t)
+	defer cleanup()
+
+	repo, err := postgres.NewUserRepository(db)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+
+	user, err := models.NewUserFromDB(models.UserFromDBParams{
+		ID:           uuid.New().String(),
+		Username:     "Test User",
+		Email:        "test@example.com",
+		PasswordHash: "password123",
+	})
+	require.NoError(t, err)
+
+	err = repo.Create(ctx, user)
+	require.NoError(t, err)
+
+	t.Run("success", func(t *testing.T) {
+		userFromDB, err := repo.FindByID(ctx, user.ID().String())
+		require.NoError(t, err)
+
+		newUsername := "new user name"
+		err = userFromDB.ChangeUsername(newUsername)
+		require.NoError(t, err)
+
+		err = repo.Update(ctx, user)
+		require.NoError(t, err)
+
+		userFromDB, err = repo.FindByID(ctx, user.ID().String())
+		require.NoError(t, err)
+
+		require.Equal(t, userFromDB.Username().String(), newUsername)
+	})
+}
