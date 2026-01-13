@@ -83,8 +83,8 @@ func NewTask(title string, description string, owner uuid.UUID) (*Task, error) {
 // and may require validation or transformation before being used
 // inside the domain model.
 type TaskFromDBParams struct {
-	ID      uuid.UUID
-	OwnerID uuid.UUID
+	ID      string
+	OwnerID string
 
 	Title       string
 	Description string
@@ -116,9 +116,19 @@ func NewTaskFromDB(p TaskFromDBParams) (*Task, error) {
 		return nil, err
 	}
 
+	parsedID, err := uuid.Parse(p.ID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrTaskFailedCreateFromDB, "invalid task ID")
+	}
+
+	parsedOwnerID, err := uuid.Parse(p.OwnerID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrTaskFailedCreateFromDB, "invalid owner ID")
+	}
+
 	task := &Task{
-		id:          p.ID,
-		ownerID:     p.OwnerID,
+		id:          parsedID,
+		ownerID:     parsedOwnerID,
 		title:       titleVO,
 		description: descriptionVO,
 
