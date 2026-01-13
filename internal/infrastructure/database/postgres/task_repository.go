@@ -90,9 +90,55 @@ func (tr *TaskRepository) Create(ctx context.Context, task *models.Task) error {
 	return nil
 }
 
+// FindByID returns the task with the given id.
+//
+// If no task with the specified id exists, FindByID returns
+// services.ErrTaskRepoNotFound.
+//
+// Other errors may be returned if the query fails or if the task
+// cannot be restored from the database representation.
 func (tr *TaskRepository) FindByID(ctx context.Context, id string) (*models.Task, error) {
-	//TODO implement me
-	panic("implement me")
+	const op = "postgres.TaskRepository.FindByID"
+
+	const query = `
+		SELECT id, owner_id, title, description, deadline, is_completed, completed_at 
+		FROM tasks WHERE id = $1`
+
+	row := tr.db.QueryRowContext(ctx, query, id)
+
+	var (
+		userID      string
+		ownerId     string
+		title       string
+		description string
+		deadline    *time.Time
+		isCompleted bool
+		completedAt *time.Time
+	)
+
+	err := row.Scan(&userID, &ownerId, &title, &description, &deadline, &isCompleted, &completedAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, services.ErrTaskRepoNotFound
+		}
+
+		return nil, fmt.Errorf("%s: find by id: %w", op, err)
+	}
+
+	task, err := models.NewTaskFromDB(models.TaskFromDBParams{
+		ID:          userID,
+		OwnerID:     ownerId,
+		Title:       title,
+		Description: description,
+		Deadline:    deadline,
+		IsCompleted: isCompleted,
+		CompletedAt: completedAt,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%s: restore task: %w", op, err)
+	}
+
+	return task, nil
 }
 
 func (tr *TaskRepository) Update(ctx context.Context, task *models.Task) error {
