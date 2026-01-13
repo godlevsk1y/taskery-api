@@ -23,7 +23,7 @@ func migrateTasks(t *testing.T, db *sql.DB) {
 	_, err := db.Exec(`
 		CREATE TABLE tasks (
 			id UUID PRIMARY KEY,
-			owner_id UUID NOT NULL,
+			owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 		
 			title TEXT NOT NULL,
 			description TEXT NOT NULL,
