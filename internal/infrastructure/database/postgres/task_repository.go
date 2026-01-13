@@ -49,7 +49,7 @@ func (tr *TaskRepository) Create(ctx context.Context, task *models.Task) error {
 		description,
 		deadline,
 		is_completed,
-		completedAt
+		completed_at
 	) VALUES ($1, $2, $3, $4, $5, $6, $7)`
 
 	var deadlineToInsert *time.Time = nil
