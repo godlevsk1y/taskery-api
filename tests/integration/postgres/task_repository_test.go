@@ -1,3 +1,5 @@
+//go:build integration
+
 package postgres
 
 import (
@@ -19,16 +21,6 @@ func migrateTasks(t *testing.T, db *sql.DB) {
 	t.Helper()
 
 	_, err := db.Exec(`
-		CREATE TABLE users (
-			id UUID PRIMARY KEY,
-			username TEXT NOT NULL,
-			email TEXT NOT NULL UNIQUE,
-			password_hash TEXT NOT NULL
-		);
-	`)
-	require.NoError(t, err)
-
-	_, err = db.Exec(`
 		CREATE TABLE tasks (
 			id UUID PRIMARY KEY,
 			owner_id UUID NOT NULL,
@@ -50,6 +42,7 @@ func TestTaskRepository_Create(t *testing.T) {
 	db, cleanup := setupPostgres(t)
 	defer cleanup()
 
+	migrateUsers(t, db)
 	migrateTasks(t, db)
 
 	userRepo, err := postgres.NewUserRepository(db)
