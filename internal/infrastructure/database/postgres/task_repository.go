@@ -78,9 +78,12 @@ func (tr *TaskRepository) Create(ctx context.Context, task *models.Task) error {
 
 			case "23503": // foreign key constraint
 				return services.ErrTaskRepoOwnerNotFound
+
+			default:
+				return fmt.Errorf("%s: create task: %w", op, err)
 			}
 		} else {
-			return fmt.Errorf("%s: %w", op, err)
+			return fmt.Errorf("%s: create task: %w", op, err)
 		}
 	}
 
