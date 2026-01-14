@@ -141,6 +141,13 @@ func (tr *TaskRepository) FindByID(ctx context.Context, id string) (*models.Task
 	return task, nil
 }
 
+// Update updates the stored task identified by task.ID using the values from task.
+//
+// It updates the task's title, description, deadline, completion status,
+// and completion time. If task.Deadline is nil, the deadline field is set to NULL.
+//
+// Update returns services.ErrTaskRepoNotFound if no task with the given ID exists.
+// Any database or execution error encountered during the update is returned.
 func (tr *TaskRepository) Update(ctx context.Context, task *models.Task) error {
 	const op = "postgres.TaskRepository.Update"
 
