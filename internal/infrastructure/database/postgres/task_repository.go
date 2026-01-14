@@ -167,6 +167,7 @@ func (tr *TaskRepository) Update(ctx context.Context, task *models.Task) error {
 		deadlineToUpdate,
 		task.IsCompleted(),
 		task.CompletedAt(),
+		task.ID().String(),
 	)
 	if err != nil {
 		return fmt.Errorf("%s: update task: %w", op, err)
