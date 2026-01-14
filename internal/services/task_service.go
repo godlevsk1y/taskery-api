@@ -46,7 +46,7 @@ var (
 	ErrTaskRepoExists = errors.New("task already exists in the repository")
 
 	// ErrTaskRepoNotFound is returned by repository if the task was not found there
-	ErrTaskRepoNotFound = errors.New("user was not found in the repository")
+	ErrTaskRepoNotFound = errors.New("task was not found in the repository")
 
 	// ErrTaskRepoOwnerNotFound is returned by repository
 	// when the owner with the given ID does not exist there.
