@@ -192,7 +192,28 @@ func (tr *TaskRepository) Update(ctx context.Context, task *models.Task) error {
 	return nil
 }
 
+// Delete removes the task with the given ID from the repository.
+//
+// Delete returns services.ErrTaskRepoNotFound if no task with the given ID exists.
+// Any database or execution error encountered during the deletion is returned.
 func (tr *TaskRepository) Delete(ctx context.Context, id string) error {
-	//TODO implement me
-	panic("implement me")
+	const op = "postgres.TaskRepository.Delete"
+
+	const query = `DELETE FROM tasks WHERE id = $1`
+
+	res, err := tr.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("%s: delete task: %w", op, err)
+	}
+
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%s: get affected rows: %w", op, err)
+	}
+
+	if affected == 0 {
+		return services.ErrTaskRepoNotFound
+	}
+
+	return nil
 }
