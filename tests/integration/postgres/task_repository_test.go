@@ -164,3 +164,58 @@ func TestTaskRepository_FindByID(t *testing.T) {
 		require.Nil(t, taskFromDB)
 	})
 }
+
+func TestTaskRepository_Update(t *testing.T) {
+	db, cleanup := setupPostgres(t)
+	defer cleanup()
+
+	migrateUsers(t, db)
+	migrateTasks(t, db)
+
+	userRepo, err := postgres.NewUserRepository(db)
+	require.NoError(t, err)
+
+	taskRepo, err := postgres.NewTaskRepository(db)
+	require.NoError(t, err)
+
+	realUser, err := userModels.NewUserFromDB(userModels.UserFromDBParams{
+		ID:           uuid.New().String(),
+		Username:     "Test User",
+		Email:        "test@example.com",
+		PasswordHash: "password123",
+	})
+	require.NoError(t, err)
+
+	ctx := context.Background()
+
+	err = userRepo.Create(ctx, realUser)
+	require.NoError(t, err)
+
+	validTask, err := taskModels.NewTask("title", "no description", realUser.ID())
+	require.NoError(t, err)
+
+	err = taskRepo.Create(ctx, validTask)
+	require.NoError(t, err)
+
+	t.Run("success", func(t *testing.T) {
+		err := validTask.ChangeDescription("new description")
+		require.NoError(t, err)
+
+		err = taskRepo.Update(ctx, validTask)
+		require.NoError(t, err)
+
+		var taskFromDB *taskModels.Task
+		taskFromDB, err = taskRepo.FindByID(ctx, validTask.ID().String())
+		require.NoError(t, err)
+
+		require.Equal(t, *validTask, *taskFromDB)
+	})
+
+	t.Run("task not found", func(t *testing.T) {
+		notExistingTask, err := taskModels.NewTask("not existing title", "no description", realUser.ID())
+		require.NoError(t, err)
+
+		err = taskRepo.Update(ctx, notExistingTask)
+		require.ErrorIs(t, err, services.ErrTaskRepoNotFound)
+	})
+}
