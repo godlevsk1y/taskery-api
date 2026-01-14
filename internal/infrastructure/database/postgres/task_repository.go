@@ -142,8 +142,46 @@ func (tr *TaskRepository) FindByID(ctx context.Context, id string) (*models.Task
 }
 
 func (tr *TaskRepository) Update(ctx context.Context, task *models.Task) error {
-	//TODO implement me
-	panic("implement me")
+	const op = "postgres.TaskRepository.Update"
+
+	const query = `
+		UPDATE tasks SET 
+			 title = $1, 
+			 description = $2, 
+			 deadline = $3, 
+			 is_completed = $4, 
+			 completed_at = $5
+		WHERE id = $6`
+
+	var deadlineToUpdate *time.Time = nil
+	if task.Deadline() != nil {
+		deadlineTime := task.Deadline().Time()
+		deadlineToUpdate = &deadlineTime
+	}
+
+	res, err := tr.db.ExecContext(
+		ctx,
+		query,
+		task.Title().String(),
+		task.Description().String(),
+		deadlineToUpdate,
+		task.IsCompleted(),
+		task.CompletedAt(),
+	)
+	if err != nil {
+		return fmt.Errorf("%s: update task: %w", op, err)
+	}
+
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%s: get affected rows: %w", op, err)
+	}
+
+	if affected == 0 {
+		return services.ErrTaskRepoNotFound
+	}
+
+	return nil
 }
 
 func (tr *TaskRepository) Delete(ctx context.Context, id string) error {
