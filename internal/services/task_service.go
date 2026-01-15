@@ -26,6 +26,12 @@ type TaskRepository interface {
 	// Returns the task and nil error if found, otherwise returns nil and an error.
 	FindByID(ctx context.Context, id string) (*models.Task, error)
 
+	// FindByOwner fetches all tasks for the given ownerID.
+	// Returns a slice of tasks and a nil error if tasks exist,
+	// an empty slice and nil if no tasks are found,
+	// or nil and an error if something goes wrong.
+	FindByOwner(ctx context.Context, ownerID string) ([]*models.Task, error)
+
 	// Update modifies an existing task's data in the repository.
 	// Returns an error if the operation fails or the task does not exist.
 	Update(ctx context.Context, task *models.Task) error
@@ -90,6 +96,8 @@ var (
 	// ErrTaskReopenFailed is returned by TaskService
 	// if an internal error occurred during reopening of the task
 	ErrTaskReopenFailed = errors.New("failed to reopen task")
+
+	ErrFindByOwnerFailed = errors.New("failed to find by owner")
 
 	// ErrTaskAccessDenied is returned when an operation on a task is not allowed
 	// because the caller does not have permission to access the task.
@@ -343,4 +351,15 @@ func (ts *TaskService) Reopen(ctx context.Context, id string, ownerID string) er
 	}
 
 	return nil
+}
+
+// FindByOwner returns all tasks that belong to the given ownerID.
+// If no tasks are found, it returns an empty slice. If an error occurred
+func (ts *TaskService) FindByOwner(ctx context.Context, ownerID string) ([]*models.Task, error) {
+	tasks, err := ts.tasksRepo.FindByOwner(ctx, ownerID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrFindByOwnerFailed, err)
+	}
+
+	return tasks, nil
 }
