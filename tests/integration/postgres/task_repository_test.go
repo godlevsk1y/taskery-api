@@ -266,3 +266,55 @@ func TestTaskRepository_Delete(t *testing.T) {
 		require.ErrorIs(t, err, services.ErrTaskRepoNotFound)
 	})
 }
+
+func TestTaskRepository_FindByOwner(t *testing.T) {
+	db, cleanup := setupPostgres(t)
+	defer cleanup()
+
+	migrateUsers(t, db)
+	migrateTasks(t, db)
+
+	userRepo, err := postgres.NewUserRepository(db)
+	require.NoError(t, err)
+
+	taskRepo, err := postgres.NewTaskRepository(db)
+	require.NoError(t, err)
+
+	realUser, err := userModels.NewUserFromDB(userModels.UserFromDBParams{
+		ID:           uuid.New().String(),
+		Username:     "Test User",
+		Email:        "test@example.com",
+		PasswordHash: "password123",
+	})
+	require.NoError(t, err)
+
+	ctx := context.Background()
+
+	err = userRepo.Create(ctx, realUser)
+	require.NoError(t, err)
+
+	t.Run("success", func(t *testing.T) {
+		task1, err := taskModels.NewTask("first task", "no description", realUser.ID())
+		require.NoError(t, err)
+		err = taskRepo.Create(ctx, task1)
+		require.NoError(t, err)
+
+		task2, err := taskModels.NewTask("second task", "other description", realUser.ID())
+		require.NoError(t, err)
+		err = taskRepo.Create(ctx, task2)
+		require.NoError(t, err)
+
+		tasksFromDB, err := taskRepo.FindByOwner(ctx, realUser.ID().String())
+		require.NoError(t, err)
+
+		require.Equal(t, 2, len(tasksFromDB))
+		require.Equal(t, *task1, *(tasksFromDB[0]))
+		require.Equal(t, *task2, *(tasksFromDB[1]))
+	})
+	t.Run("empty slice", func(t *testing.T) {
+		tasks, err := taskRepo.FindByOwner(ctx, realUser.ID().String())
+		require.NoError(t, err)
+		require.NotNil(t, tasks)
+		require.Equal(t, 0, len(tasks))
+	})
+}
