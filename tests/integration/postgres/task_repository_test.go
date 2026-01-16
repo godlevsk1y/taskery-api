@@ -312,7 +312,7 @@ func TestTaskRepository_FindByOwner(t *testing.T) {
 		require.Equal(t, *task2, *(tasksFromDB[1]))
 	})
 	t.Run("empty slice", func(t *testing.T) {
-		tasks, err := taskRepo.FindByOwner(ctx, realUser.ID().String())
+		tasks, err := taskRepo.FindByOwner(ctx, uuid.New().String())
 		require.NoError(t, err)
 		require.NotNil(t, tasks)
 		require.Equal(t, 0, len(tasks))
