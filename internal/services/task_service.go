@@ -65,7 +65,7 @@ var (
 	ErrTaskExists = errors.New("task already exists")
 
 	// ErrTaskNotFound is returned by TaskService if the task was not found in the repository
-	ErrTaskNotFound = errors.New("user was not found")
+	ErrTaskNotFound = errors.New("task was not found")
 
 	// ErrTaskOwnerNotFound is returned by TaskService
 	// when an operation cannot be completed because the owner with the given ID does not exist.
