@@ -217,3 +217,72 @@ func (tr *TaskRepository) Delete(ctx context.Context, id string) error {
 
 	return nil
 }
+
+// FindByOwner returns all tasks that belong to the given ownerID.
+//
+// The tasks are ordered as returned by the database. If no tasks are found,
+// it returns an empty slice and a nil error.
+//
+// An error is returned if the query execution fails, a row cannot be scanned,
+// or a task cannot be restored from the database representation. In case an error occurred nil slice is returned.
+func (tr *TaskRepository) FindByOwner(ctx context.Context, ownerID string) ([]*models.Task, error) {
+	const op = "postgres.TaskRepository.FindByOwner"
+
+	const query = `
+		SELECT id, owner_id, title, description, deadline, is_completed, completed_at FROM tasks
+		WHERE owner_id = $1`
+
+	rows, err := tr.db.QueryContext(ctx, query, ownerID)
+	if err != nil {
+		return nil, fmt.Errorf("%s: find tasks: %w", op, err)
+	}
+	defer rows.Close()
+
+	tasks := make([]*models.Task, 0)
+
+	for rows.Next() {
+		var (
+			taskID      string
+			ownerID     string
+			title       string
+			description string
+			deadline    *time.Time
+			isCompleted bool
+			completedAt *time.Time
+		)
+
+		err := rows.Scan(
+			&taskID,
+			&ownerID,
+			&title,
+			&description,
+			&deadline,
+			&isCompleted,
+			&completedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("%s: scan row: %w", op, err)
+		}
+
+		task, err := models.NewTaskFromDB(models.TaskFromDBParams{
+			ID:          taskID,
+			OwnerID:     ownerID,
+			Title:       title,
+			Description: description,
+			Deadline:    deadline,
+			IsCompleted: isCompleted,
+			CompletedAt: completedAt,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("%s: restore task: %w", op, err)
+		}
+
+		tasks = append(tasks, task)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: rows: %w", op, err)
+	}
+
+	return tasks, nil
+}
