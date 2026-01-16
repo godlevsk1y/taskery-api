@@ -264,8 +264,8 @@ func TestTaskService_ChangeTitle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			taskToReturn, err := models.NewTaskFromDB(models.TaskFromDBParams{
-				ID:          realTaskID,
-				OwnerID:     realOwnerID,
+				ID:          realTaskID.String(),
+				OwnerID:     realOwnerID.String(),
 				Title:       "Old Title",
 				Description: "Some Description",
 				Deadline:    nil,
@@ -387,8 +387,8 @@ func TestTaskService_ChangeDescription(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			taskToReturn, err := models.NewTaskFromDB(models.TaskFromDBParams{
-				ID:          realTaskID,
-				OwnerID:     tt.taskOwnerID,
+				ID:          realTaskID.String(),
+				OwnerID:     tt.taskOwnerID.String(),
 				Title:       "Some Title",
 				Description: "Some Description",
 				Deadline:    nil,
@@ -490,8 +490,8 @@ func TestTaskService_SetDeadline(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			taskToReturn, err := models.NewTaskFromDB(models.TaskFromDBParams{
-				ID:          realTaskID,
-				OwnerID:     realOwnerID,
+				ID:          realTaskID.String(),
+				OwnerID:     realOwnerID.String(),
 				Title:       "Some Title",
 				Description: "Some Description",
 				Deadline:    tt.previousDeadline,
@@ -623,8 +623,8 @@ func TestTaskService_Complete(t *testing.T) {
 			}
 
 			taskToReturn, err := models.NewTaskFromDB(models.TaskFromDBParams{
-				ID:          realTaskID,
-				OwnerID:     realOwnerID,
+				ID:          realTaskID.String(),
+				OwnerID:     realOwnerID.String(),
 				Title:       "Some Title",
 				Description: "Some Description",
 				Deadline:    nil,
@@ -756,8 +756,8 @@ func TestTaskService_Reopen(t *testing.T) {
 			}
 
 			taskToReturn, err := models.NewTaskFromDB(models.TaskFromDBParams{
-				ID:          realTaskID,
-				OwnerID:     realOwnerID,
+				ID:          realTaskID.String(),
+				OwnerID:     realOwnerID.String(),
 				Title:       "Some Title",
 				Description: "Some Description",
 				Deadline:    nil,
