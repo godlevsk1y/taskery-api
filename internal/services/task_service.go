@@ -99,6 +99,9 @@ var (
 
 	ErrTaskFindByOwnerFailed = errors.New("failed to find by owner")
 
+	// ErrTaskDeleteFailed is returned by TaskService if an internal error occurred during task deletion
+	ErrTaskDeleteFailed = errors.New("failed to delete task")
+
 	// ErrTaskAccessDenied is returned when an operation on a task is not allowed
 	// because the caller does not have permission to access the task.
 	ErrTaskAccessDenied = errors.New("task access denied")
@@ -362,4 +365,24 @@ func (ts *TaskService) FindByOwner(ctx context.Context, ownerID string) ([]*mode
 	}
 
 	return tasks, nil
+}
+
+func (ts *TaskService) Delete(ctx context.Context, id string, ownerID string) error {
+	task, err := ts.tasksRepo.FindByID(ctx, id)
+	if errors.Is(err, ErrTaskRepoNotFound) {
+		return ErrTaskNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrTaskDeleteFailed, err)
+	}
+
+	if task.OwnerID().String() != ownerID {
+		return ErrTaskAccessDenied
+	}
+
+	if err := ts.tasksRepo.Delete(ctx, id); err != nil {
+		return fmt.Errorf("%w: %s", ErrTaskDeleteFailed, err)
+	}
+
+	return nil
 }
