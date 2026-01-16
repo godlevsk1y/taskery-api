@@ -97,7 +97,7 @@ var (
 	// if an internal error occurred during reopening of the task
 	ErrTaskReopenFailed = errors.New("failed to reopen task")
 
-	ErrFindByOwnerFailed = errors.New("failed to find by owner")
+	ErrTaskFindByOwnerFailed = errors.New("failed to find by owner")
 
 	// ErrTaskAccessDenied is returned when an operation on a task is not allowed
 	// because the caller does not have permission to access the task.
@@ -358,7 +358,7 @@ func (ts *TaskService) Reopen(ctx context.Context, id string, ownerID string) er
 func (ts *TaskService) FindByOwner(ctx context.Context, ownerID string) ([]*models.Task, error) {
 	tasks, err := ts.tasksRepo.FindByOwner(ctx, ownerID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrFindByOwnerFailed, err)
+		return nil, fmt.Errorf("%w: %s", ErrTaskFindByOwnerFailed, err)
 	}
 
 	return tasks, nil

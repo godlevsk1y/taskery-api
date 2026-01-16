@@ -788,3 +788,118 @@ func TestTaskService_Reopen(t *testing.T) {
 		})
 	}
 }
+
+func TestTaskService_FindByOwner(t *testing.T) {
+	realOwnerID := uuid.New()
+
+	tests := []struct {
+		name       string
+		ownerID    string
+		wantErr    error
+		wantLen    int
+		mocksSetup func(repo *mocks.TaskRepository)
+	}{
+		{
+			name:    "success with 1 element",
+			ownerID: realOwnerID.String(),
+			wantErr: nil,
+			wantLen: 1,
+
+			mocksSetup: func(repo *mocks.TaskRepository) {
+				t.Helper()
+
+				task1, err := models.NewTask("title", "some description", realOwnerID)
+				require.NoError(t, err)
+
+				sliceToReturn := []*models.Task{
+					task1,
+				}
+
+				repo.On("FindByOwner", mock.Anything, realOwnerID.String()).
+					Once().
+					Return(sliceToReturn, nil)
+			},
+		},
+		{
+			name:    "success with more elements",
+			ownerID: realOwnerID.String(),
+			wantErr: nil,
+			wantLen: 3,
+
+			mocksSetup: func(repo *mocks.TaskRepository) {
+				t.Helper()
+
+				task1, err := models.NewTask("title", "some description", realOwnerID)
+				require.NoError(t, err)
+
+				task2, err := models.NewTask("title2", "some description2", realOwnerID)
+				require.NoError(t, err)
+
+				task3, err := models.NewTask("title3", "", realOwnerID)
+				require.NoError(t, err)
+
+				sliceToReturn := []*models.Task{
+					task1,
+					task2,
+					task3,
+				}
+
+				repo.On("FindByOwner", mock.Anything, realOwnerID.String()).
+					Once().
+					Return(sliceToReturn, nil)
+			},
+		},
+		{
+			name:    "success with no elements",
+			ownerID: realOwnerID.String(),
+			wantErr: nil,
+			wantLen: 0,
+
+			mocksSetup: func(repo *mocks.TaskRepository) {
+				t.Helper()
+
+				repo.On("FindByOwner", mock.Anything, realOwnerID.String()).
+					Once().
+					Return([]*models.Task{}, nil)
+			},
+		},
+		{
+			name:    "internal db error",
+			ownerID: realOwnerID.String(),
+			wantErr: services.ErrTaskFindByOwnerFailed,
+
+			mocksSetup: func(repo *mocks.TaskRepository) {
+				t.Helper()
+
+				repo.On("FindByOwner", mock.Anything, realOwnerID.String()).
+					Once().
+					Return(nil, errors.New("failed to connect to db"))
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := new(mocks.TaskRepository)
+			if tt.mocksSetup != nil {
+				tt.mocksSetup(repo)
+			}
+
+			service, err := services.NewTaskService(repo)
+			require.NoError(t, err)
+
+			ctx := context.Background()
+
+			result, err := service.FindByOwner(ctx, tt.ownerID)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+				require.Nil(t, result)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			require.Len(t, result, tt.wantLen)
+		})
+	}
+}
