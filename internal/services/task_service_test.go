@@ -264,8 +264,8 @@ func TestTaskService_ChangeTitle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			taskToReturn, err := models.NewTaskFromDB(models.TaskFromDBParams{
-				ID:          realTaskID,
-				OwnerID:     realOwnerID,
+				ID:          realTaskID.String(),
+				OwnerID:     realOwnerID.String(),
 				Title:       "Old Title",
 				Description: "Some Description",
 				Deadline:    nil,
@@ -387,8 +387,8 @@ func TestTaskService_ChangeDescription(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			taskToReturn, err := models.NewTaskFromDB(models.TaskFromDBParams{
-				ID:          realTaskID,
-				OwnerID:     tt.taskOwnerID,
+				ID:          realTaskID.String(),
+				OwnerID:     tt.taskOwnerID.String(),
 				Title:       "Some Title",
 				Description: "Some Description",
 				Deadline:    nil,
@@ -490,8 +490,8 @@ func TestTaskService_SetDeadline(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			taskToReturn, err := models.NewTaskFromDB(models.TaskFromDBParams{
-				ID:          realTaskID,
-				OwnerID:     realOwnerID,
+				ID:          realTaskID.String(),
+				OwnerID:     realOwnerID.String(),
 				Title:       "Some Title",
 				Description: "Some Description",
 				Deadline:    tt.previousDeadline,
@@ -623,8 +623,8 @@ func TestTaskService_Complete(t *testing.T) {
 			}
 
 			taskToReturn, err := models.NewTaskFromDB(models.TaskFromDBParams{
-				ID:          realTaskID,
-				OwnerID:     realOwnerID,
+				ID:          realTaskID.String(),
+				OwnerID:     realOwnerID.String(),
 				Title:       "Some Title",
 				Description: "Some Description",
 				Deadline:    nil,
@@ -756,8 +756,8 @@ func TestTaskService_Reopen(t *testing.T) {
 			}
 
 			taskToReturn, err := models.NewTaskFromDB(models.TaskFromDBParams{
-				ID:          realTaskID,
-				OwnerID:     realOwnerID,
+				ID:          realTaskID.String(),
+				OwnerID:     realOwnerID.String(),
 				Title:       "Some Title",
 				Description: "Some Description",
 				Deadline:    nil,
@@ -784,6 +784,225 @@ func TestTaskService_Reopen(t *testing.T) {
 			}
 
 			require.False(t, taskToReturn.IsCompleted())
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestTaskService_FindByOwner(t *testing.T) {
+	realOwnerID := uuid.New()
+
+	tests := []struct {
+		name       string
+		ownerID    string
+		wantErr    error
+		wantLen    int
+		mocksSetup func(repo *mocks.TaskRepository)
+	}{
+		{
+			name:    "success with 1 element",
+			ownerID: realOwnerID.String(),
+			wantErr: nil,
+			wantLen: 1,
+
+			mocksSetup: func(repo *mocks.TaskRepository) {
+				t.Helper()
+
+				task1, err := models.NewTask("title", "some description", realOwnerID)
+				require.NoError(t, err)
+
+				sliceToReturn := []*models.Task{
+					task1,
+				}
+
+				repo.On("FindByOwner", mock.Anything, realOwnerID.String()).
+					Once().
+					Return(sliceToReturn, nil)
+			},
+		},
+		{
+			name:    "success with more elements",
+			ownerID: realOwnerID.String(),
+			wantErr: nil,
+			wantLen: 3,
+
+			mocksSetup: func(repo *mocks.TaskRepository) {
+				t.Helper()
+
+				task1, err := models.NewTask("title", "some description", realOwnerID)
+				require.NoError(t, err)
+
+				task2, err := models.NewTask("title2", "some description2", realOwnerID)
+				require.NoError(t, err)
+
+				task3, err := models.NewTask("title3", "", realOwnerID)
+				require.NoError(t, err)
+
+				sliceToReturn := []*models.Task{
+					task1,
+					task2,
+					task3,
+				}
+
+				repo.On("FindByOwner", mock.Anything, realOwnerID.String()).
+					Once().
+					Return(sliceToReturn, nil)
+			},
+		},
+		{
+			name:    "success with no elements",
+			ownerID: realOwnerID.String(),
+			wantErr: nil,
+			wantLen: 0,
+
+			mocksSetup: func(repo *mocks.TaskRepository) {
+				t.Helper()
+
+				repo.On("FindByOwner", mock.Anything, realOwnerID.String()).
+					Once().
+					Return([]*models.Task{}, nil)
+			},
+		},
+		{
+			name:    "internal db error",
+			ownerID: realOwnerID.String(),
+			wantErr: services.ErrTaskFindByOwnerFailed,
+
+			mocksSetup: func(repo *mocks.TaskRepository) {
+				t.Helper()
+
+				repo.On("FindByOwner", mock.Anything, realOwnerID.String()).
+					Once().
+					Return(nil, errors.New("failed to connect to db"))
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := new(mocks.TaskRepository)
+			if tt.mocksSetup != nil {
+				tt.mocksSetup(repo)
+			}
+
+			service, err := services.NewTaskService(repo)
+			require.NoError(t, err)
+
+			ctx := context.Background()
+
+			result, err := service.FindByOwner(ctx, tt.ownerID)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+				require.Nil(t, result)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			require.Len(t, result, tt.wantLen)
+		})
+	}
+}
+
+func TestTaskService_Delete(t *testing.T) {
+	validTaskID := uuid.New()
+	validOwnerID := uuid.New()
+
+	tests := []struct {
+		name    string
+		taskID  string
+		ownerID string
+		wantErr error
+
+		mocksSetup func(repo *mocks.TaskRepository)
+	}{
+		{
+			name:    "success",
+			taskID:  validTaskID.String(),
+			ownerID: validOwnerID.String(),
+			wantErr: nil,
+
+			mocksSetup: func(repo *mocks.TaskRepository) {
+				repo.On("FindByID", mock.Anything, validTaskID.String()).
+					Once().
+					Return(models.NewTaskFromDB(models.TaskFromDBParams{
+						ID:          validTaskID.String(),
+						OwnerID:     validOwnerID.String(),
+						Title:       "some title",
+						Description: "some description",
+						Deadline:    nil,
+						IsCompleted: false,
+						CompletedAt: nil,
+					}))
+
+				repo.On("Delete", mock.Anything, validTaskID.String()).
+					Once().
+					Return(nil)
+			},
+		},
+		{
+			name:    "access denied",
+			taskID:  validTaskID.String(),
+			ownerID: uuid.New().String(),
+			wantErr: services.ErrTaskAccessDenied,
+
+			mocksSetup: func(repo *mocks.TaskRepository) {
+				repo.On("FindByID", mock.Anything, validTaskID.String()).
+					Once().
+					Return(models.NewTaskFromDB(models.TaskFromDBParams{
+						ID:          validTaskID.String(),
+						OwnerID:     validOwnerID.String(),
+						Title:       "some title",
+						Description: "some description",
+						Deadline:    nil,
+						IsCompleted: false,
+						CompletedAt: nil,
+					}))
+			},
+		},
+		{
+			name:    "internal db error",
+			taskID:  validTaskID.String(),
+			ownerID: validOwnerID.String(),
+			wantErr: services.ErrTaskDeleteFailed,
+
+			mocksSetup: func(repo *mocks.TaskRepository) {
+				repo.On("FindByID", mock.Anything, validTaskID.String()).
+					Once().
+					Return(models.NewTaskFromDB(models.TaskFromDBParams{
+						ID:          validTaskID.String(),
+						OwnerID:     validOwnerID.String(),
+						Title:       "some title",
+						Description: "some description",
+						Deadline:    nil,
+						IsCompleted: false,
+						CompletedAt: nil,
+					}))
+
+				repo.On("Delete", mock.Anything, validTaskID.String()).
+					Once().
+					Return(errors.New("failed to connect to db"))
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := new(mocks.TaskRepository)
+			if tt.mocksSetup != nil {
+				tt.mocksSetup(repo)
+			}
+
+			service, err := services.NewTaskService(repo)
+			require.NoError(t, err)
+
+			ctx := context.Background()
+			err = service.Delete(ctx, tt.taskID, tt.ownerID)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+				return
+			}
+
 			require.NoError(t, err)
 		})
 	}

@@ -60,21 +60,49 @@ func NewUser(username, email, password string) (*User, error) {
 	}, nil
 }
 
-// NewUserWithID creates a new User with a specified UUID.
-// It validates the ID and other user fields, converts them into value objects,
-// and hashes the password. Returns ErrUserIDInvalid if the UUID is invalid.
-func NewUserWithID(id, username, email, password string) (*User, error) {
-	user, err := NewUser(username, email, password)
+// UserFromDBParams contains raw user data loaded from the database.
+//
+// This struct is used as an input for constructing a domain User
+// from persisted storage. All fields represent database values
+// and may require validation or transformation before being used
+// inside the domain model.
+//
+// Password must contain a raw password
+type UserFromDBParams struct {
+	ID           string
+	Username     string
+	Email        string
+	PasswordHash string
+}
+
+// NewUserFromDB creates a new User with a specified UUID.
+// It validates the ID and other user fields, converts them into value objects.
+// Returns ErrUserIDInvalid if the UUID is invalid.
+func NewUserFromDB(p UserFromDBParams) (*User, error) {
+	usernameVO, err := vo.NewUsername(p.Username)
 	if err != nil {
 		return nil, err
 	}
 
-	parsedID, err := uuid.Parse(id)
+	emailVO, err := vo.NewEmail(p.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	passwordVO := vo.NewPasswordFromHash([]byte(p.PasswordHash))
+
+	parsedID, err := uuid.Parse(p.ID)
 	if err != nil {
 		return nil, ErrUserIDInvalid
 	}
 
-	user.id = parsedID
+	user := &User{
+		id:           parsedID,
+		username:     usernameVO,
+		email:        emailVO,
+		passwordHash: passwordVO,
+	}
+
 	return user, nil
 }
 

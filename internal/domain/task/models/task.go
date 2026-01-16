@@ -12,8 +12,8 @@ import (
 // Task is a model that represents a task.
 // It includes the task's ID, title, description, completion status, and deadline.
 type Task struct {
-	id    uuid.UUID
-	owner uuid.UUID
+	id      uuid.UUID
+	ownerID uuid.UUID
 
 	title       vo.Title
 	description vo.Description
@@ -25,7 +25,7 @@ type Task struct {
 }
 
 func (t *Task) ID() uuid.UUID               { return t.id }
-func (t *Task) Owner() uuid.UUID            { return t.owner }
+func (t *Task) OwnerID() uuid.UUID          { return t.ownerID }
 func (t *Task) Title() vo.Title             { return t.title }
 func (t *Task) Description() vo.Description { return t.description }
 func (t *Task) Deadline() *vo.Deadline      { return t.deadline }
@@ -50,7 +50,7 @@ func (t *Task) CompletedAt() *time.Time {
 
 var ErrTaskFailedCreateFromDB = errors.New("failed to create task from DB")
 
-// NewTask creates a new Task instance with the given title, description, and owner. It does not set a deadline.
+// NewTask creates a new Task instance with the given title, description, and ownerID. It does not set a deadline.
 func NewTask(title string, description string, owner uuid.UUID) (*Task, error) {
 	titleVO, err := vo.NewTitle(title)
 	if err != nil {
@@ -63,8 +63,8 @@ func NewTask(title string, description string, owner uuid.UUID) (*Task, error) {
 	}
 
 	return &Task{
-		id:    uuid.New(),
-		owner: owner,
+		id:      uuid.New(),
+		ownerID: owner,
 
 		title:       titleVO,
 		description: descriptionVO,
@@ -83,8 +83,8 @@ func NewTask(title string, description string, owner uuid.UUID) (*Task, error) {
 // and may require validation or transformation before being used
 // inside the domain model.
 type TaskFromDBParams struct {
-	ID      uuid.UUID
-	OwnerID uuid.UUID
+	ID      string
+	OwnerID string
 
 	Title       string
 	Description string
@@ -116,9 +116,19 @@ func NewTaskFromDB(p TaskFromDBParams) (*Task, error) {
 		return nil, err
 	}
 
+	parsedID, err := uuid.Parse(p.ID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrTaskFailedCreateFromDB, "invalid task ID")
+	}
+
+	parsedOwnerID, err := uuid.Parse(p.OwnerID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrTaskFailedCreateFromDB, "invalid owner ID")
+	}
+
 	task := &Task{
-		id:          p.ID,
-		owner:       p.OwnerID,
+		id:          parsedID,
+		ownerID:     parsedOwnerID,
 		title:       titleVO,
 		description: descriptionVO,
 
@@ -140,7 +150,7 @@ func NewTaskFromDB(p TaskFromDBParams) (*Task, error) {
 	return task, nil
 }
 
-// NewTaskWithDeadline creates a new Task instance with the given title, description, owner, and deadline.
+// NewTaskWithDeadline creates a new Task instance with the given title, description, ownerID, and deadline.
 func NewTaskWithDeadline(title string, description string, owner uuid.UUID, deadline time.Time) (*Task, error) {
 	task, err := NewTask(title, description, owner)
 	if err != nil {

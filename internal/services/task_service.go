@@ -26,6 +26,12 @@ type TaskRepository interface {
 	// Returns the task and nil error if found, otherwise returns nil and an error.
 	FindByID(ctx context.Context, id string) (*models.Task, error)
 
+	// FindByOwner fetches all tasks for the given ownerID.
+	// Returns a slice of tasks and a nil error if tasks exist,
+	// an empty slice and nil if no tasks are found,
+	// or nil and an error if something goes wrong.
+	FindByOwner(ctx context.Context, ownerID string) ([]*models.Task, error)
+
 	// Update modifies an existing task's data in the repository.
 	// Returns an error if the operation fails or the task does not exist.
 	Update(ctx context.Context, task *models.Task) error
@@ -46,7 +52,7 @@ var (
 	ErrTaskRepoExists = errors.New("task already exists in the repository")
 
 	// ErrTaskRepoNotFound is returned by repository if the task was not found there
-	ErrTaskRepoNotFound = errors.New("user was not found in the repository")
+	ErrTaskRepoNotFound = errors.New("task was not found in the repository")
 
 	// ErrTaskRepoOwnerNotFound is returned by repository
 	// when the owner with the given ID does not exist there.
@@ -90,6 +96,11 @@ var (
 	// ErrTaskReopenFailed is returned by TaskService
 	// if an internal error occurred during reopening of the task
 	ErrTaskReopenFailed = errors.New("failed to reopen task")
+
+	ErrTaskFindByOwnerFailed = errors.New("failed to find by owner")
+
+	// ErrTaskDeleteFailed is returned by TaskService if an internal error occurred during task deletion
+	ErrTaskDeleteFailed = errors.New("failed to delete task")
 
 	// ErrTaskAccessDenied is returned when an operation on a task is not allowed
 	// because the caller does not have permission to access the task.
@@ -171,7 +182,7 @@ func (ts *TaskService) ChangeTitle(ctx context.Context, id string, ownerID strin
 		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
 	}
 
-	if task.Owner().String() != ownerID {
+	if task.OwnerID().String() != ownerID {
 		return ErrTaskAccessDenied
 	}
 
@@ -205,7 +216,7 @@ func (ts *TaskService) ChangeDescription(ctx context.Context, id string, ownerID
 		return fmt.Errorf("%w: %s", ErrTaskChangeDescriptionFailed, err)
 	}
 
-	if task.Owner().String() != ownerID {
+	if task.OwnerID().String() != ownerID {
 		return ErrTaskAccessDenied
 	}
 
@@ -237,7 +248,7 @@ func (ts *TaskService) SetDeadline(ctx context.Context, id string, ownerID strin
 		return fmt.Errorf("%w: %s", ErrTaskSetDeadlineFailed, err)
 	}
 
-	if task.Owner().String() != ownerID {
+	if task.OwnerID().String() != ownerID {
 		return ErrTaskAccessDenied
 	}
 
@@ -269,7 +280,7 @@ func (ts *TaskService) RemoveDeadline(ctx context.Context, id string, ownerID st
 		return fmt.Errorf("%w: %s", ErrTaskRemoveDeadlineFailed, err)
 	}
 
-	if task.Owner().String() != ownerID {
+	if task.OwnerID().String() != ownerID {
 		return ErrTaskAccessDenied
 	}
 
@@ -298,7 +309,7 @@ func (ts *TaskService) Complete(ctx context.Context, id string, ownerID string) 
 		return fmt.Errorf("%w: %s", ErrTaskCompleteFailed, err)
 	}
 
-	if task.Owner().String() != ownerID {
+	if task.OwnerID().String() != ownerID {
 		return ErrTaskAccessDenied
 	}
 
@@ -328,7 +339,7 @@ func (ts *TaskService) Reopen(ctx context.Context, id string, ownerID string) er
 		return fmt.Errorf("%w: %s", ErrTaskReopenFailed, err)
 	}
 
-	if task.Owner().String() != ownerID {
+	if task.OwnerID().String() != ownerID {
 		return ErrTaskAccessDenied
 	}
 
@@ -340,6 +351,37 @@ func (ts *TaskService) Reopen(ctx context.Context, id string, ownerID string) er
 
 	if err := ts.tasksRepo.Update(ctx, task); err != nil {
 		return fmt.Errorf("%w: %s", ErrTaskReopenFailed, err)
+	}
+
+	return nil
+}
+
+// FindByOwner returns all tasks that belong to the given ownerID.
+// If no tasks are found, it returns an empty slice. If an error occurred
+func (ts *TaskService) FindByOwner(ctx context.Context, ownerID string) ([]*models.Task, error) {
+	tasks, err := ts.tasksRepo.FindByOwner(ctx, ownerID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrTaskFindByOwnerFailed, err)
+	}
+
+	return tasks, nil
+}
+
+func (ts *TaskService) Delete(ctx context.Context, id string, ownerID string) error {
+	task, err := ts.tasksRepo.FindByID(ctx, id)
+	if errors.Is(err, ErrTaskRepoNotFound) {
+		return ErrTaskNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrTaskDeleteFailed, err)
+	}
+
+	if task.OwnerID().String() != ownerID {
+		return ErrTaskAccessDenied
+	}
+
+	if err := ts.tasksRepo.Delete(ctx, id); err != nil {
+		return fmt.Errorf("%w: %s", ErrTaskDeleteFailed, err)
 	}
 
 	return nil

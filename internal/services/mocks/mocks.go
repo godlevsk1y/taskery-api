@@ -221,6 +221,74 @@ func (_c *TaskRepository_FindByID_Call) RunAndReturn(run func(ctx context.Contex
 	return _c
 }
 
+// FindByOwner provides a mock function for the type TaskRepository
+func (_mock *TaskRepository) FindByOwner(ctx context.Context, ownerID string) ([]*models.Task, error) {
+	ret := _mock.Called(ctx, ownerID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindByOwner")
+	}
+
+	var r0 []*models.Task
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]*models.Task, error)); ok {
+		return returnFunc(ctx, ownerID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []*models.Task); ok {
+		r0 = returnFunc(ctx, ownerID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*models.Task)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, ownerID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// TaskRepository_FindByOwner_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindByOwner'
+type TaskRepository_FindByOwner_Call struct {
+	*mock.Call
+}
+
+// FindByOwner is a helper method to define mock.On call
+//   - ctx context.Context
+//   - ownerID string
+func (_e *TaskRepository_Expecter) FindByOwner(ctx interface{}, ownerID interface{}) *TaskRepository_FindByOwner_Call {
+	return &TaskRepository_FindByOwner_Call{Call: _e.mock.On("FindByOwner", ctx, ownerID)}
+}
+
+func (_c *TaskRepository_FindByOwner_Call) Run(run func(ctx context.Context, ownerID string)) *TaskRepository_FindByOwner_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *TaskRepository_FindByOwner_Call) Return(tasks []*models.Task, err error) *TaskRepository_FindByOwner_Call {
+	_c.Call.Return(tasks, err)
+	return _c
+}
+
+func (_c *TaskRepository_FindByOwner_Call) RunAndReturn(run func(ctx context.Context, ownerID string) ([]*models.Task, error)) *TaskRepository_FindByOwner_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Update provides a mock function for the type TaskRepository
 func (_mock *TaskRepository) Update(ctx context.Context, task *models.Task) error {
 	ret := _mock.Called(ctx, task)

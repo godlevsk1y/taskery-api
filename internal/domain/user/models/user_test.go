@@ -70,7 +70,7 @@ func TestNewUser(t *testing.T) {
 	}
 }
 
-func TestNewUserWithID(t *testing.T) {
+func TestNewUserFromDB(t *testing.T) {
 	validID := uuid.New().String()
 
 	tests := []struct {
@@ -101,7 +101,12 @@ func TestNewUserWithID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			u, err := models.NewUserWithID(tt.id, tt.username, tt.email, tt.password)
+			u, err := models.NewUserFromDB(models.UserFromDBParams{
+				ID:           tt.id,
+				Username:     tt.username,
+				Email:        tt.email,
+				PasswordHash: tt.password,
+			})
 			if tt.expectedErr != nil {
 				require.ErrorIs(t, err, tt.expectedErr)
 				return
@@ -113,6 +118,8 @@ func TestNewUserWithID(t *testing.T) {
 			parsed, err := uuid.Parse(tt.id)
 			require.NoError(t, err)
 			require.Equal(t, parsed, u.ID())
+
+			require.Equal(t, u.PasswordHash().String(), tt.password)
 		})
 	}
 }
