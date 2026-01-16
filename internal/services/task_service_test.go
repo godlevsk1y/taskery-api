@@ -903,3 +903,107 @@ func TestTaskService_FindByOwner(t *testing.T) {
 		})
 	}
 }
+
+func TestTaskService_Delete(t *testing.T) {
+	validTaskID := uuid.New()
+	validOwnerID := uuid.New()
+
+	tests := []struct {
+		name    string
+		taskID  string
+		ownerID string
+		wantErr error
+
+		mocksSetup func(repo *mocks.TaskRepository)
+	}{
+		{
+			name:    "success",
+			taskID:  validTaskID.String(),
+			ownerID: validOwnerID.String(),
+			wantErr: nil,
+
+			mocksSetup: func(repo *mocks.TaskRepository) {
+				repo.On("FindByID", mock.Anything, validTaskID.String()).
+					Once().
+					Return(models.NewTaskFromDB(models.TaskFromDBParams{
+						ID:          validTaskID.String(),
+						OwnerID:     validOwnerID.String(),
+						Title:       "some title",
+						Description: "some description",
+						Deadline:    nil,
+						IsCompleted: false,
+						CompletedAt: nil,
+					}))
+
+				repo.On("Delete", mock.Anything, validTaskID.String()).
+					Once().
+					Return(nil)
+			},
+		},
+		{
+			name:    "access denied",
+			taskID:  validTaskID.String(),
+			ownerID: uuid.New().String(),
+			wantErr: services.ErrTaskAccessDenied,
+
+			mocksSetup: func(repo *mocks.TaskRepository) {
+				repo.On("FindByID", mock.Anything, validTaskID.String()).
+					Once().
+					Return(models.NewTaskFromDB(models.TaskFromDBParams{
+						ID:          validTaskID.String(),
+						OwnerID:     validOwnerID.String(),
+						Title:       "some title",
+						Description: "some description",
+						Deadline:    nil,
+						IsCompleted: false,
+						CompletedAt: nil,
+					}))
+			},
+		},
+		{
+			name:    "internal db error",
+			taskID:  validTaskID.String(),
+			ownerID: validOwnerID.String(),
+			wantErr: services.ErrTaskDeleteFailed,
+
+			mocksSetup: func(repo *mocks.TaskRepository) {
+				repo.On("FindByID", mock.Anything, validTaskID.String()).
+					Once().
+					Return(models.NewTaskFromDB(models.TaskFromDBParams{
+						ID:          validTaskID.String(),
+						OwnerID:     validOwnerID.String(),
+						Title:       "some title",
+						Description: "some description",
+						Deadline:    nil,
+						IsCompleted: false,
+						CompletedAt: nil,
+					}))
+
+				repo.On("Delete", mock.Anything, validTaskID.String()).
+					Once().
+					Return(errors.New("failed to connect to db"))
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := new(mocks.TaskRepository)
+			if tt.mocksSetup != nil {
+				tt.mocksSetup(repo)
+			}
+
+			service, err := services.NewTaskService(repo)
+			require.NoError(t, err)
+
+			ctx := context.Background()
+			err = service.Delete(ctx, tt.taskID, tt.ownerID)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+}
