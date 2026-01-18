@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -32,6 +33,8 @@ func NewProvider(secret []byte, ttl time.Duration, issuer string) *Provider {
 // Generate returns the signed JWT as a string and any error encountered
 // while signing the token.
 func (p *Provider) Generate(userID string) (string, error) {
+	const op = "jwt.Provider.Generate"
+
 	claims := jwt.MapClaims{
 		"sub": userID,
 		"iat": time.Now().Unix(),
@@ -43,7 +46,7 @@ func (p *Provider) Generate(userID string) (string, error) {
 
 	signed, err := token.SignedString(p.secret)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
 	return signed, nil
