@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cyberbrain-dev/taskery-api/internal/services"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -51,3 +52,42 @@ func (p *Provider) Generate(userID string) (string, error) {
 
 	return signed, nil
 }
+
+// Validate checks a JWT token and returns its "sub" claim if valid.
+func (p *Provider) Validate(token string) (string, error) {
+	const op = "jwt.Provider.Validate"
+
+	parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (any, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("%s: unexpected signing method: %v", op, t.Header["alg"])
+		}
+
+		return p.secret, nil
+	})
+	if err != nil {
+		return "", fmt.Errorf("%s: parse token: %w", op, err)
+	}
+
+	if !parsedToken.Valid {
+		return "", fmt.Errorf("%s: token is invalid", op)
+	}
+
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", fmt.Errorf("%s: token claims invalid", op)
+	}
+
+	userID, ok := claims["sub"].(string)
+	if !ok || userID == "" {
+		return "", fmt.Errorf("%s: sub is invalid", op)
+	}
+
+	iss, ok := claims["iss"].(string)
+	if !ok || iss != p.issuer {
+		return "", fmt.Errorf("%s: iss is invalid", op)
+	}
+
+	return userID, nil
+}
+
+var _ services.TokenProvider = (*Provider)(nil)
