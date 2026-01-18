@@ -23,7 +23,15 @@ func NewProvider(secret []byte, ttl time.Duration, issuer string) *Provider {
 	return &Provider{secret: secret, ttl: ttl, issuer: issuer}
 }
 
-func (p Provider) Generate(userID string) (string, error) {
+// Generate creates a signed JWT token for the given userID.
+// The token contains standard claims: "sub" (subject) set to userID,
+// "iat" (issued at) set to the current Unix time, "exp" (expiration) set
+// to the current time plus the provider's TTL, and "iss" (issuer) set
+// to the provider's issuer string.
+//
+// Generate returns the signed JWT as a string and any error encountered
+// while signing the token.
+func (p *Provider) Generate(userID string) (string, error) {
 	claims := jwt.MapClaims{
 		"sub": userID,
 		"iat": time.Now().Unix(),
