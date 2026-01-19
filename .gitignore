@@ -195,3 +195,9 @@ Temporary Items
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,go
+
+config/
+!config/example.yml
+
+.env
+!example.env
