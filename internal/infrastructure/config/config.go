@@ -11,9 +11,9 @@ import (
 
 // Configuration represents YAML configuration of the application
 type Configuration struct {
-	Environment        string
-	HTTPServer         HTTPServer
-	PostgresConnection PostgresConnection
+	Environment        string             `yaml:"env" env-default:"local"`
+	HTTPServer         HTTPServer         `yaml:"http_server" env-required:"true"`
+	PostgresConnection PostgresConnection `yaml:"postgres_connection" env-required:"true"`
 }
 
 // HTTPServer represents config of the application server
@@ -29,7 +29,7 @@ type PostgresConnection struct {
 	Port     string `yaml:"port" env-required:"true"`
 	Username string `yaml:"username" env-required:"true"`
 	Password string `yaml:"password" env-required:"true"`
-	DBName   string `yaml:"database" env-required:"true"`
+	DBName   string `yaml:"db_name" env-required:"true"`
 }
 
 // MustLoad loads the configuration from the file,
