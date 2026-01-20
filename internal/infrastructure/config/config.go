@@ -11,6 +11,7 @@ import (
 
 // Configuration represents YAML configuration of the application
 type Configuration struct {
+	Environment        string
 	HTTPServer         HTTPServer
 	PostgresConnection PostgresConnection
 }
