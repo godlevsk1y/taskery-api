@@ -1,7 +1,7 @@
 package config
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"time"
 
@@ -35,22 +35,22 @@ type PostgresConnection struct {
 // which path is given in CONFIG_PATH environment variable
 func MustLoad() Configuration {
 	if err := godotenv.Load("example.env"); err != nil {
-		log.Fatalf("error loading .env file: %v", err)
+		panic(fmt.Sprintf("Error loading .env file: %s", err))
 	}
 
 	configPath := os.Getenv("CONFIG_PATH")
 	if configPath == "" {
-		log.Fatal("CONFIG_PATH environment variable not set")
+		panic("CONFIG_PATH environment variable not set")
 	}
 
 	if _, err := os.Stat(configPath); err != nil {
-		log.Fatalf("file with path %s does not exist", configPath)
+		panic(fmt.Sprintf("file with path %s does not exist", configPath))
 	}
 
 	var cfg Configuration
 
 	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
-		log.Fatalf("error reading config: %s", err)
+		panic(fmt.Sprintf("error reading config: %s", err))
 	}
 
 	return cfg
