@@ -34,7 +34,7 @@ type PostgresConnection struct {
 // MustLoad loads the configuration from the file,
 // which path is given in CONFIG_PATH environment variable
 func MustLoad() Configuration {
-	if err := godotenv.Load("example.env"); err != nil {
+	if err := godotenv.Load(".env"); err != nil {
 		panic(fmt.Sprintf("Error loading .env file: %s", err))
 	}
 
