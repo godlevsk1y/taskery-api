@@ -19,8 +19,8 @@ func TestMustLoad_OK(t *testing.T) {
 
 	envFile, err := os.Create("./.env")
 	require.NoError(t, err)
-	defer envFile.Close()
 	defer os.Remove(".env")
+	defer envFile.Close()
 
 	n, err := envFile.WriteString("CONFIG_PATH=test.yml")
 	require.NoError(t, err)
@@ -28,8 +28,8 @@ func TestMustLoad_OK(t *testing.T) {
 
 	configFile, err := os.Create("test.yml")
 	require.NoError(t, err)
-	defer configFile.Close()
 	defer os.Remove("test.yml")
+	defer configFile.Close()
 
 	configText := strings.Replace(`
 		env: "local" # local, dev, production
@@ -76,8 +76,8 @@ func TestMustLoad_NoConfigPath(t *testing.T) {
 
 	envFile, err := os.Create("./.env")
 	require.NoError(t, err)
-	defer envFile.Close()
 	defer os.Remove(".env")
+	defer envFile.Close()
 
 	_ = config.MustLoad()
 }
@@ -91,12 +91,14 @@ func TestMustLoad_ConfigFileNotExists(t *testing.T) {
 
 	envFile, err := os.Create("./.env")
 	require.NoError(t, err)
-	defer envFile.Close()
 	defer os.Remove(".env")
+	defer envFile.Close()
 
 	n, err := envFile.WriteString("CONFIG_PATH=test.yml")
 	require.NoError(t, err)
 	require.NotZero(t, n)
+
+	_ = config.MustLoad()
 }
 
 func TestMustLoad_ConfigParsingFailed(t *testing.T) {
@@ -108,8 +110,8 @@ func TestMustLoad_ConfigParsingFailed(t *testing.T) {
 
 	envFile, err := os.Create("./.env")
 	require.NoError(t, err)
-	defer envFile.Close()
 	defer os.Remove(".env")
+	defer envFile.Close()
 
 	n, err := envFile.WriteString("CONFIG_PATH=test.yml")
 	require.NoError(t, err)
@@ -117,8 +119,8 @@ func TestMustLoad_ConfigParsingFailed(t *testing.T) {
 
 	configFile, err := os.Create("test.yml")
 	require.NoError(t, err)
-	defer configFile.Close()
 	defer os.Remove("test.yml")
+	defer configFile.Close()
 
 	n, err = configFile.WriteString("wklenfk4ho24t08ur0[hf[o2'h")
 
