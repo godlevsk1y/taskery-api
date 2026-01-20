@@ -56,3 +56,71 @@ func TestMustLoad_OK(t *testing.T) {
 	require.Equal(t, 15*time.Second, cfg.HTTPServer.Timeout)
 	require.Equal(t, 90*time.Second, cfg.HTTPServer.IdleTimeout)
 }
+
+func TestMustLoad_NoEnv(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("function did not panic as expected")
+		}
+	}()
+
+	_ = config.MustLoad()
+}
+
+func TestMustLoad_NoConfigPath(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("function did not panic as expected")
+		}
+	}()
+
+	envFile, err := os.Create("./.env")
+	require.NoError(t, err)
+	defer envFile.Close()
+	defer os.Remove(".env")
+
+	_ = config.MustLoad()
+}
+
+func TestMustLoad_ConfigFileNotExists(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("function did not panic as expected")
+		}
+	}()
+
+	envFile, err := os.Create("./.env")
+	require.NoError(t, err)
+	defer envFile.Close()
+	defer os.Remove(".env")
+
+	n, err := envFile.WriteString("CONFIG_PATH=test.yml")
+	require.NoError(t, err)
+	require.NotZero(t, n)
+}
+
+func TestMustLoad_ConfigParsingFailed(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("function did not panic as expected")
+		}
+	}()
+
+	envFile, err := os.Create("./.env")
+	require.NoError(t, err)
+	defer envFile.Close()
+	defer os.Remove(".env")
+
+	n, err := envFile.WriteString("CONFIG_PATH=test.yml")
+	require.NoError(t, err)
+	require.NotZero(t, n)
+
+	configFile, err := os.Create("test.yml")
+	require.NoError(t, err)
+	defer configFile.Close()
+	defer os.Remove("test.yml")
+
+	n, err = configFile.WriteString("wklenfk4ho24t08ur0[hf[o2'h")
+
+	_ = config.MustLoad()
+}
