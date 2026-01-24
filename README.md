@@ -31,7 +31,7 @@ REST API для **Taskery** — системы управления задача
 - REST API
 - PostgreSQL
 - JWT-авторизация
-
+---
 # Taskery REST API
 
 REST API for **Taskery** — a task and todo management system with synchronization
