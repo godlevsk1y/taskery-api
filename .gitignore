@@ -196,7 +196,7 @@ Temporary Items
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,go
 
-./config/
+./config/local.yml
 !./config/example.yml
 
 .env
