@@ -1,7 +1,13 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/cyberbrain-dev/taskery-api/internal/infrastructure/config"
+)
 
 func main() {
-	fmt.Println("Hello, my first REST API!")
+	cfg := config.MustLoad()
+
+	fmt.Println(cfg)
 }
