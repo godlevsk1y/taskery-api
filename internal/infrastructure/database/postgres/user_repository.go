@@ -225,3 +225,5 @@ func (ur *UserRepository) Delete(ctx context.Context, id string) error {
 
 	return nil
 }
+
+var _ services.UserRepository = (*UserRepository)(nil)

@@ -286,3 +286,5 @@ func (tr *TaskRepository) FindByOwner(ctx context.Context, ownerID string) ([]*m
 
 	return tasks, nil
 }
+
+var _ services.TaskRepository = (*TaskRepository)(nil)

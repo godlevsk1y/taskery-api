@@ -1,7 +1,39 @@
 package main
 
-import "fmt"
+import (
+	"log/slog"
+	"os"
+
+	"github.com/cyberbrain-dev/taskery-api/internal/infrastructure/config"
+)
 
 func main() {
-	fmt.Println("Hello, my first REST API!")
+	cfg := config.MustLoad()
+
+	logger := setupLogger(cfg.Environment)
+
+	logger.Info("starting taskery-api...")
+}
+
+func setupLogger(env string) *slog.Logger {
+	var logger *slog.Logger
+
+	switch env {
+	case "local":
+		logger = slog.New(
+			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+		)
+
+	case "dev":
+		logger = slog.New(
+			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+		)
+	case "production":
+	default:
+		logger = slog.New(
+			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}),
+		)
+	}
+
+	return logger
 }
