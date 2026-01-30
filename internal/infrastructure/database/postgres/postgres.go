@@ -9,6 +9,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// MustConnect opens a connection to Postgres database with provided configuration.
+// Panics if an error occurred
 func MustConnect(cfg config.PostgresConnection) *sql.DB {
 	const op = "postgres.Connect"
 
