@@ -1,17 +1,23 @@
 package main
 
 import (
-	"fmt"
 	"log/slog"
 	"os"
 
 	"github.com/cyberbrain-dev/taskery-api/internal/infrastructure/config"
+	"github.com/cyberbrain-dev/taskery-api/internal/infrastructure/database/postgres"
 )
 
 func main() {
 	cfg := config.MustLoad()
 
-	fmt.Println(cfg)
+	logger := setupLogger(cfg.Environment)
+
+	logger.Info("starting taskery-api...")
+
+	db := postgres.MustConnect(cfg.PostgresConnection)
+
+	_ = db
 }
 
 func setupLogger(env string) *slog.Logger {
