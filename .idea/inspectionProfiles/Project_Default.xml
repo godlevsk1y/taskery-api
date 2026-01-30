@@ -36,6 +36,7 @@
         <method importPath="hash" receiver="Hash" name="Write" />
         <method importPath="database/sql" receiver="*Rows" name="Close" />
         <method importPath="os" receiver="*File" name="Close" />
+        <method importPath="database/sql" receiver="*DB" name="Close" />
       </methods>
     </inspection_tool>
     <inspection_tool class="SqlNoDataSourceInspection" enabled="false" level="WARNING" enabled_by_default="false" />
