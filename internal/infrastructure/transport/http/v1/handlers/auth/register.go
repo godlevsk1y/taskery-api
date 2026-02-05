@@ -42,7 +42,7 @@ func NewRegisterHandler(
 }
 
 func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	const op = "handlers.user.Register"
+	const op = "handlers.auth.Register"
 
 	ctx, cancel := context.WithTimeout(r.Context(), h.timeout)
 	defer cancel()
