@@ -38,23 +38,23 @@ func NewLoginHandler(
 	}
 }
 
-func (l *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	const op = "handlers.auth.Login"
 
-	ctx, cancel := context.WithTimeout(r.Context(), l.timeout)
+	ctx, cancel := context.WithTimeout(r.Context(), h.timeout)
 	defer cancel()
 
-	logger := l.logger.With(
+	logger := h.logger.With(
 		slog.String("op", op),
 		slog.String("request_id", middleware.GetReqID(r.Context())),
 	)
 
-	req, ok := handlers.DecodeAndValidate[LoginRequest](w, r, l.logger, l.validate)
+	req, ok := handlers.DecodeAndValidate[LoginRequest](w, r, h.logger, h.validate)
 	if !ok {
 		return
 	}
 
-	token, err := l.authenticator.Login(ctx, req.Email, req.Password)
+	token, err := h.authenticator.Login(ctx, req.Email, req.Password)
 	if err != nil {
 		logger.Error("failed to login", slog.String("error", err.Error()))
 
