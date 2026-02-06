@@ -2,9 +2,7 @@ package auth
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"io"
 	"log/slog"
 	"net/http"
 	"time"
@@ -51,22 +49,8 @@ func (l *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		slog.String("request_id", middleware.GetReqID(r.Context())),
 	)
 
-	var req LoginRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if errors.Is(err, io.EOF) {
-		logger.Error("request body is empty")
-		handlers.WriteError(w, http.StatusBadRequest, errors.New("request body is empty"))
-		return
-	}
-	if err != nil {
-		logger.Error("failed to decode request body")
-		handlers.WriteError(w, http.StatusBadRequest, errors.New("failed to decode request body"))
-		return
-	}
-
-	if err := l.validate.Struct(req); err != nil {
-		logger.Error("failed to validate request body", slog.String("error", err.Error()))
-		handlers.WriteError(w, http.StatusBadRequest, err)
+	req, ok := handlers.DecodeAndValidate[LoginRequest](w, r, l.logger, l.validate)
+	if !ok {
 		return
 	}
 

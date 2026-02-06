@@ -2,9 +2,6 @@ package auth
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
-	"io"
 	"log/slog"
 	"net/http"
 	"time"
@@ -52,26 +49,12 @@ func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		slog.String("request_id", middleware.GetReqID(r.Context())),
 	)
 
-	var req RegisterRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if errors.Is(err, io.EOF) {
-		logger.Error("request body is empty")
-		handlers.WriteError(w, http.StatusBadRequest, errors.New("request body is empty"))
-		return
-	}
-	if err != nil {
-		logger.Error("failed to decode request body")
-		handlers.WriteError(w, http.StatusBadRequest, errors.New("failed to decode request body"))
+	req, ok := handlers.DecodeAndValidate[RegisterRequest](w, r, h.logger, h.validate)
+	if !ok {
 		return
 	}
 
-	if err := h.validate.Struct(req); err != nil {
-		logger.Error("failed to validate request body", slog.String("error", err.Error()))
-		handlers.WriteError(w, http.StatusBadRequest, err)
-		return
-	}
-
-	err = h.registrar.Register(ctx, req.Username, req.Email, req.Password)
+	err := h.registrar.Register(ctx, req.Username, req.Email, req.Password)
 	if err != nil {
 		logger.Error("failed to register user", slog.String("error", err.Error()))
 
