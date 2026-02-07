@@ -14,5 +14,8 @@ template: testify
 template-schema: '{{.Template}}.schema.json'
 packages:
   github.com/cyberbrain-dev/taskery-api/internal/services:
-    config:
-      all: true
+      config:
+        all: true
+  github.com/cyberbrain-dev/taskery-api/internal/infrastructure/transport/http/v1/handlers/auth:
+      config:
+        all: true
