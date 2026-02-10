@@ -57,8 +57,7 @@ func TestRegisterHandler(t *testing.T) {
 			},
 
 			expectedCode: http.StatusBadRequest,
-			expectedBody: `{"errors":[{"field":"Email","error":"Key: 'RegisterRequest.Email' ` +
-				`Error:Field validation for 'Email' failed on the 'email' tag"}]}`,
+			expectedBody: `{"errors":[{"field":"Email","error":"field is not a valid email"}]}`,
 
 			mockSetup: func(r *mocks.Registrar) {
 				r.On("Register", mock.Anything, correctUsername, "not_correct", correctPassword).

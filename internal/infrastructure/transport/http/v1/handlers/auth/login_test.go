@@ -52,8 +52,7 @@ func TestLoginHandler(t *testing.T) {
 				Password: correctPassword,
 			},
 			expectedCode: http.StatusBadRequest,
-			expectedBody: `{"errors":[{"field":"Email","error":"Key: 'LoginRequest.Email' ` +
-				`Error:Field validation for 'Email' failed on the 'email' tag"}]}`,
+			expectedBody: `{"errors":[{"field":"Email","error":"field is not a valid email"}]}`,
 			mockSetup: func(a *mocks.Authenticator) {
 				a.On("Login", mock.Anything, "invalid_email", correctPassword).
 					Return("", nil)
