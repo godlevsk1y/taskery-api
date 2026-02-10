@@ -9,6 +9,10 @@ type UpdateRequest struct {
 	Password string `json:"password" validate:"required,printascii"`
 }
 
+type DeleteRequest struct {
+	Password string `json:"password" validate:"required,printascii"`
+}
+
 // ========= Responses ================
 
 type UpdateResponse struct {

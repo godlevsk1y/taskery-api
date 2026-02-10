@@ -61,6 +61,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), h.timeout)
 	defer cancel()
 
+	// ! TODO: make a separate function and type for user_id (func that takes context and return string and ok)
 	userID := r.Context().Value("userID").(string)
 	if req.Username != "" {
 		err := h.updater.ChangeUsername(ctx, userID, req.Username, req.Password)
