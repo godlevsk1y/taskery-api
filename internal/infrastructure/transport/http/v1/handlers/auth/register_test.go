@@ -81,7 +81,7 @@ func TestRegisterHandler(t *testing.T) {
 			},
 		},
 		{
-			name: "user exists",
+			name: "internal server error",
 			payload: auth.RegisterRequest{
 				Username: correctUsername,
 				Email:    correctEmail,
@@ -89,7 +89,7 @@ func TestRegisterHandler(t *testing.T) {
 			},
 
 			expectedCode: http.StatusInternalServerError,
-			expectedBody: `{"error":"failed to create user"}`,
+			expectedBody: `{"error":"register failed"}`,
 
 			mockSetup: func(r *mocks.Registrar) {
 				r.On("Register", mock.Anything, correctUsername, correctEmail, correctPassword).

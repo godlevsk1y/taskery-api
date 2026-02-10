@@ -64,7 +64,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if errors.Is(err, services.ErrUserLoginFailed) {
-			handlers.WriteError(w, http.StatusInternalServerError, errors.New("internal server error"))
+			handlers.WriteError(w, http.StatusInternalServerError, errors.New("login failed"))
 			return
 		}
 

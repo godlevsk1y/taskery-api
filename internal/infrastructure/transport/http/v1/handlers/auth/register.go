@@ -65,7 +65,7 @@ func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if errors.Is(err, services.ErrUserRegisterFailed) {
-			handlers.WriteError(w, http.StatusInternalServerError, errors.New("failed to register user"))
+			handlers.WriteError(w, http.StatusInternalServerError, errors.New("register failed"))
 			return
 		}
 

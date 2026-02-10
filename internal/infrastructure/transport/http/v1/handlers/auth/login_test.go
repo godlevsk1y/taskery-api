@@ -91,10 +91,10 @@ func TestLoginHandler(t *testing.T) {
 				Password: correctPassword,
 			},
 			expectedCode: http.StatusInternalServerError,
-			expectedBody: `{"error":"failed to create user"}`,
+			expectedBody: `{"error":"login failed"}`,
 			mockSetup: func(a *mocks.Authenticator) {
 				a.On("Login", mock.Anything, correctEmail, correctPassword).
-					Return("", services.ErrUserRegisterFailed)
+					Return("", services.ErrUserLoginFailed)
 			},
 		},
 	}
