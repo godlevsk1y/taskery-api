@@ -19,3 +19,6 @@ packages:
   github.com/cyberbrain-dev/taskery-api/internal/infrastructure/transport/http/v1/handlers/auth:
       config:
         all: true
+  github.com/cyberbrain-dev/taskery-api/internal/infrastructure/transport/http/v1/handlers/user:
+    config:
+      all: true
