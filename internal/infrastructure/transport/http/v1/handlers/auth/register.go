@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"net/http"
 	"time"
@@ -63,7 +64,12 @@ func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		handlers.WriteError(w, http.StatusInternalServerError, err)
+		if errors.Is(err, services.ErrUserRegisterFailed) {
+			handlers.WriteError(w, http.StatusInternalServerError, errors.New("failed to register user"))
+			return
+		}
+
+		handlers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
