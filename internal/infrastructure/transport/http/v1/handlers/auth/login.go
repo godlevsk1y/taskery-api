@@ -64,6 +64,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		handlers.WriteError(w, http.StatusInternalServerError, err)
+		return
 	}
 
 	handlers.WriteJSON(w, http.StatusOK, LoginResponse{
