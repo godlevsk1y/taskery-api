@@ -3,8 +3,8 @@ package user
 // ========= Requests =================
 
 type UpdateRequest struct {
-	Email    string `json:"email" validate:"email"`
-	Username string `json:"username" validate:"alphanumunicode"`
+	Email    string `json:"email" validate:"omitempty,email"`
+	Username string `json:"username" validate:"omitempty"`
 
 	Password string `json:"password" validate:"required,printascii"`
 }
