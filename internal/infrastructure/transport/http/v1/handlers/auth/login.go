@@ -63,7 +63,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		handlers.WriteError(w, http.StatusInternalServerError, err)
+		handlers.WriteError(w, http.StatusInternalServerError, errors.New("internal server error"))
 		return
 	}
 
