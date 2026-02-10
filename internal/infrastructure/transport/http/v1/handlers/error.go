@@ -35,13 +35,33 @@ func WriteError(w http.ResponseWriter, code int, err error) {
 
 func makeResponse(err error) ErrorResponse {
 	if vErrs, ok := err.(validator.ValidationErrors); ok {
-		fieldErrs := make([]FieldError, 0, len(vErrs))
-		for _, vErr := range vErrs {
-			fieldErrs = append(fieldErrs, FieldError{Field: vErr.Field(), Error: vErr.Error()})
-		}
-
-		return ErrorResponse{Errors: fieldErrs}
+		return ErrorResponse{Errors: makeValidationErrors(vErrs)}
 	}
 
 	return ErrorResponse{Error: err.Error()}
+}
+
+func makeValidationErrors(errs validator.ValidationErrors) []FieldError {
+	fieldErrors := make([]FieldError, 0, len(errs))
+
+	for _, err := range errs {
+		switch err.ActualTag() {
+		case "required":
+			fieldErrors = append(fieldErrors, FieldError{Field: err.Field(), Error: "field is required"})
+
+		case "email":
+			fieldErrors = append(fieldErrors, FieldError{Field: err.Field(), Error: "field is not a valid email"})
+
+		case "printascii":
+			fieldErrors = append(
+				fieldErrors,
+				FieldError{Field: err.Field(), Error: "field contains invalid characters"},
+			)
+
+		default:
+			fieldErrors = append(fieldErrors, FieldError{Field: err.Field(), Error: "field is invalid"})
+		}
+	}
+
+	return fieldErrors
 }
