@@ -123,3 +123,5 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Email:    req.Email,
 	})
 }
+
+// TODO: add more logging in handlers (e.g. after successful registration or deletion)
