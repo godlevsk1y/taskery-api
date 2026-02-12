@@ -99,7 +99,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if errorsx.IsAny(err, services.ErrUserUnauthorized) {
-				handlers.WriteError(w, http.StatusUnauthorized, errors.New("password incorrect"))
+				handlers.WriteError(w, http.StatusUnauthorized, errors.New("unauthorized"))
 				return
 			}
 
