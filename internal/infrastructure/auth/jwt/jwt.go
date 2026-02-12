@@ -53,7 +53,7 @@ func (p *Provider) Generate(userID string) (string, error) {
 	return signed, nil
 }
 
-// Validate checks a JWT token and returns its "sub" claim if valid.
+// Validate checks a JWT token and returns its "sub" claim if valid. It returns user's ID and an error
 func (p *Provider) Validate(token string) (string, error) {
 	const op = "jwt.Provider.Validate"
 
