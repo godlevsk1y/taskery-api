@@ -59,7 +59,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		logger.Error("failed to login", slog.String("error", err.Error()))
 
 		if errorsx.IsAny(err, services.ErrUserNotFound, services.ErrUserUnauthorized) {
-			handlers.WriteError(w, http.StatusUnauthorized, errors.New("unauthorized"))
+			handlers.WriteError(w, http.StatusUnauthorized, errors.New("invalid credentials"))
 			return
 		}
 
