@@ -14,6 +14,7 @@ import (
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/cyberbrain-dev/taskery-api/internal/infrastructure/transport/http/v1/handlers/user"
 	"github.com/cyberbrain-dev/taskery-api/internal/infrastructure/transport/http/v1/handlers/user/mocks"
+	myMw "github.com/cyberbrain-dev/taskery-api/internal/infrastructure/transport/http/v1/middleware"
 	"github.com/cyberbrain-dev/taskery-api/internal/services"
 	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/mock"
@@ -109,7 +110,7 @@ func TestDeleteHandler(t *testing.T) {
 			req := httptest.NewRequest(http.MethodDelete, "/user/", bytes.NewReader(body))
 			req.Header.Set("Content-Type", "application/json")
 
-			req = req.WithContext(context.WithValue(req.Context(), "userID", tt.userID))
+			req = req.WithContext(context.WithValue(req.Context(), myMw.UserContextKey, tt.userID))
 
 			rr := httptest.NewRecorder()
 
