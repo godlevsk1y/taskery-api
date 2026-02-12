@@ -20,7 +20,9 @@ func WriteJSON(w http.ResponseWriter, code int, v any) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	_, _ = w.Write(data)
+	if v != nil {
+		_, _ = w.Write(data)
+	}
 }
 
 // DecodeAndValidate decodes the JSON request body into a value of type T
