@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/cyberbrain-dev/taskery-api/internal/infrastructure/transport/http/v1/handlers"
+	myMw "github.com/cyberbrain-dev/taskery-api/internal/infrastructure/transport/http/v1/middleware"
 	"github.com/cyberbrain-dev/taskery-api/internal/services"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-playground/validator/v10"
@@ -51,8 +52,7 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// ! TODO: make a separate function and type for user_id (func that takes context and return string and ok)
-	userID := r.Context().Value("userID").(string)
+	userID := r.Context().Value(myMw.UserContextKey).(string)
 
 	ctx, cancel := context.WithTimeout(r.Context(), h.timeout)
 	defer cancel()

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/cyberbrain-dev/taskery-api/internal/infrastructure/transport/http/v1/handlers"
+	myMw "github.com/cyberbrain-dev/taskery-api/internal/infrastructure/transport/http/v1/middleware"
 	"github.com/cyberbrain-dev/taskery-api/internal/services"
 	"github.com/cyberbrain-dev/taskery-api/pkg/errorsx"
 	"github.com/go-chi/chi/v5/middleware"
@@ -61,8 +62,8 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), h.timeout)
 	defer cancel()
 
-	// ! TODO: make a separate function and type for user_id (func that takes context and return string and ok)
-	userID := r.Context().Value("userID").(string)
+	userID := r.Context().Value(myMw.UserContextKey).(string)
+
 	if req.Username != "" {
 		err := h.updater.ChangeUsername(ctx, userID, req.Username, req.Password)
 		if err != nil {
