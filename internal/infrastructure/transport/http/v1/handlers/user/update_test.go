@@ -109,7 +109,7 @@ func TestUpdateHandler(t *testing.T) {
 			body, err := json.Marshal(tt.payload)
 			require.NoError(t, err)
 
-			req := httptest.NewRequest(http.MethodPut, "/user/update", bytes.NewReader(body))
+			req := httptest.NewRequest(http.MethodPatch, "/user/update", bytes.NewReader(body))
 			req.Header.Set("Content-Type", "application/json")
 
 			req = req.WithContext(context.WithValue(req.Context(), "userID", userID))
