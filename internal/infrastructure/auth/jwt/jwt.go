@@ -25,6 +25,10 @@ func NewProvider(secret []byte, ttl time.Duration, issuer string) *Provider {
 	return &Provider{secret: secret, ttl: ttl, issuer: issuer}
 }
 
+type Claims struct {
+	jwt.RegisteredClaims
+}
+
 // Generate creates a signed JWT token for the given userID.
 // The token contains standard claims: "sub" (subject) set to userID,
 // "iat" (issued at) set to the current Unix time, "exp" (expiration) set
@@ -36,11 +40,13 @@ func NewProvider(secret []byte, ttl time.Duration, issuer string) *Provider {
 func (p *Provider) Generate(userID string) (string, error) {
 	const op = "jwt.Provider.Generate"
 
-	claims := jwt.MapClaims{
-		"sub": userID,
-		"iat": time.Now().Unix(),
-		"exp": time.Now().Add(p.ttl).Unix(),
-		"iss": p.issuer,
+	claims := &Claims{
+		jwt.RegisteredClaims{
+			Issuer:    p.issuer,
+			Subject:   userID,
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(p.ttl)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -57,13 +63,19 @@ func (p *Provider) Generate(userID string) (string, error) {
 func (p *Provider) Validate(token string) (string, error) {
 	const op = "jwt.Provider.Validate"
 
-	parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (any, error) {
-		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("%s: unexpected signing method: %v", op, t.Header["alg"])
-		}
+	claims := &Claims{}
 
-		return p.secret, nil
-	})
+	parsedToken, err := jwt.ParseWithClaims(
+		token,
+		claims,
+		func(token *jwt.Token) (any, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("%s: unexpected signing method: %v", op, token.Header["alg"])
+			}
+
+			return p.secret, nil
+		},
+	)
 	if err != nil {
 		return "", fmt.Errorf("%s: parse token: %w", op, err)
 	}
@@ -72,22 +84,19 @@ func (p *Provider) Validate(token string) (string, error) {
 		return "", fmt.Errorf("%s: token is invalid", op)
 	}
 
-	claims, ok := parsedToken.Claims.(jwt.MapClaims)
-	if !ok {
-		return "", fmt.Errorf("%s: token claims invalid", op)
+	if claims.Issuer != p.issuer {
+		return "", fmt.Errorf("%s: invalid issuer", op)
 	}
 
-	userID, ok := claims["sub"].(string)
-	if !ok || userID == "" {
-		return "", fmt.Errorf("%s: sub is invalid", op)
+	if claims.ExpiresAt == nil || claims.ExpiresAt.Time.Before(time.Now()) {
+		return "", fmt.Errorf("%s: expired token", op)
 	}
 
-	iss, ok := claims["iss"].(string)
-	if !ok || iss != p.issuer {
-		return "", fmt.Errorf("%s: iss is invalid", op)
+	if claims.Subject == "" {
+		return "", fmt.Errorf("%s: subject is empty", op)
 	}
 
-	return userID, nil
+	return claims.Subject, nil
 }
 
 var _ services.TokenProvider = (*Provider)(nil)
