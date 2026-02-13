@@ -188,6 +188,9 @@ func (us *UserService) ChangeUsername(ctx context.Context, id, newUsername, pass
 	if errors.Is(err, vo.ErrPasswordNotMatch) {
 		return ErrUserUnauthorized
 	}
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrUserChangeUsernameFailed, err)
+	}
 
 	if err := user.ChangeUsername(newUsername); err != nil {
 		return err
