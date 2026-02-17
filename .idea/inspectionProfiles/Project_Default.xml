@@ -11,6 +11,7 @@
         <method importPath="database/sql" receiver="*DB" name="QueryContext" />
       </methods>
     </inspection_tool>
+    <inspection_tool class="GoTypeAssertionOnErrors" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="GoUnhandledErrorResult" enabled="true" level="WARNING" enabled_by_default="true">
       <functions>
         <function importPath="fmt" name="Println" />

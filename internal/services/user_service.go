@@ -80,6 +80,9 @@ var (
 	// ErrUserChangeEmailFailed is returned by UserService if an internal error occurred during email editing
 	ErrUserChangeEmailFailed = errors.New("failed to change email")
 
+	// ErrUserChangeUsernameFailed is returned by UserService if an internal error occurred during username editing
+	ErrUserChangeUsernameFailed = errors.New("failed to change email")
+
 	// ErrUserChangePasswordFailed is returned by UserService if an internal error occurred during password editing
 	ErrUserChangePasswordFailed = errors.New("failed to change password")
 
@@ -178,12 +181,15 @@ func (us *UserService) ChangeUsername(ctx context.Context, id, newUsername, pass
 		return ErrUserNotFound
 	}
 	if err != nil {
-		return fmt.Errorf("%w: %s", ErrUserChangeEmailFailed, err)
+		return fmt.Errorf("%w: %s", ErrUserChangeUsernameFailed, err)
 	}
 
 	err = user.PasswordHash().Verify(password)
 	if errors.Is(err, vo.ErrPasswordNotMatch) {
 		return ErrUserUnauthorized
+	}
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrUserChangeUsernameFailed, err)
 	}
 
 	if err := user.ChangeUsername(newUsername); err != nil {
@@ -191,7 +197,7 @@ func (us *UserService) ChangeUsername(ctx context.Context, id, newUsername, pass
 	}
 
 	if err := us.usersRepo.Update(ctx, user); err != nil {
-		return fmt.Errorf("%w: %s", ErrUserChangeEmailFailed, err)
+		return fmt.Errorf("%w: %s", ErrUserChangeUsernameFailed, err)
 	}
 
 	return nil
