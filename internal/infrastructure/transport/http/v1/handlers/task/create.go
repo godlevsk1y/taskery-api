@@ -41,7 +41,7 @@ func NewCreateHandler(
 }
 
 func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	const op = "handers.Task.Create"
+	const op = "handlers.Task.Create"
 
 	logger := h.logger.With(
 		slog.String("op", op),
