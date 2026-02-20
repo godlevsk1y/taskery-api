@@ -94,7 +94,6 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	/// TODO: add create response
 	handlers.WriteJSON(w, http.StatusCreated, CreateResponse{
 		Title: req.Title,
 	})

@@ -36,7 +36,6 @@ func TestNewDescription(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt // capture range variable
 		t.Run(tt.name, func(t *testing.T) {
 			desc, err := vo.NewDescription(tt.input)
 			if tt.wantError != nil {
