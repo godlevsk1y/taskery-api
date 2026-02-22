@@ -52,7 +52,12 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := r.Context().Value(myMw.UserContextKey).(string)
+	userID := myMw.GetUserID(r.Context())
+	if userID == "" {
+		logger.Error("failed to extract owner id")
+		handlers.WriteError(w, http.StatusBadRequest, errors.New("bad request"))
+		return
+	}
 
 	ctx, cancel := context.WithTimeout(r.Context(), h.timeout)
 	defer cancel()

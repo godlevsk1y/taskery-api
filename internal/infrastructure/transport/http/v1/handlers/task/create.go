@@ -53,8 +53,12 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: move the owner ID extraction to a separate function (like chi middleware.GetReqID does)
-	ownerIDStr := r.Context().Value(myMw.UserContextKey).(string)
+	ownerIDStr := myMw.GetUserID(r.Context())
+	if ownerIDStr == "" {
+		logger.Error("failed to extract owner id")
+		handlers.WriteError(w, http.StatusBadRequest, errors.New("bad request"))
+		return
+	}
 
 	ownerID, err := uuid.Parse(ownerIDStr)
 	if err != nil {

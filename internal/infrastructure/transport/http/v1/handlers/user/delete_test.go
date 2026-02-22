@@ -110,7 +110,7 @@ func TestDeleteHandler(t *testing.T) {
 			req := httptest.NewRequest(http.MethodDelete, "/user/", bytes.NewReader(body))
 			req.Header.Set("Content-Type", "application/json")
 
-			req = req.WithContext(context.WithValue(req.Context(), myMw.UserContextKey, tt.userID))
+			req = req.WithContext(context.WithValue(req.Context(), myMw.UserIDKey, tt.userID))
 
 			rr := httptest.NewRecorder()
 

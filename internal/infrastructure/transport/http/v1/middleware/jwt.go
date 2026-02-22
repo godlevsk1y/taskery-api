@@ -11,10 +11,10 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-type contextKey string
+type ctxKeyUserID string
 
-// UserContextKey is the string literal used in HTTP-request's context as key for user ID
-const UserContextKey contextKey = "userID"
+// UserIDKey is the string literal used in HTTP-request's context as key for user ID
+const UserIDKey ctxKeyUserID = "userID"
 
 // JWTValidator wraps a method for parsing and validating JWT token.
 type JWTValidator interface {
@@ -27,7 +27,7 @@ type JWTValidator interface {
 // the "Bearer " schema.
 //
 // If the token is valid, the middleware adds the resulting user ID to the
-// request context using UserContextKey and calls the next handler.
+// request context using UserIDKey and calls the next handler.
 // Otherwise, it logs the error using logger and returns a
 // 401 Unauthorized response to the client.
 func JWTAuth(validator JWTValidator, logger *slog.Logger) func(http.Handler) http.Handler {
@@ -64,8 +64,20 @@ func JWTAuth(validator JWTValidator, logger *slog.Logger) func(http.Handler) htt
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), UserContextKey, userID)
+			ctx := context.WithValue(r.Context(), UserIDKey, userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+// GetUserID returns a user ID from the given context if one is present.
+// Returns the empty string if a user ID cannot be found.
+func GetUserID(ctx context.Context) string {
+	if ctx == nil {
+		return ""
+	}
+	if userID, ok := ctx.Value(UserIDKey).(string); ok {
+		return userID
+	}
+	return ""
 }

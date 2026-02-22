@@ -113,7 +113,7 @@ func TestUpdateHandler(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPatch, "/user/", bytes.NewReader(body))
 			req.Header.Set("Content-Type", "application/json")
 
-			req = req.WithContext(context.WithValue(req.Context(), myMw.UserContextKey, userID))
+			req = req.WithContext(context.WithValue(req.Context(), myMw.UserIDKey, userID))
 
 			rr := httptest.NewRecorder()
 

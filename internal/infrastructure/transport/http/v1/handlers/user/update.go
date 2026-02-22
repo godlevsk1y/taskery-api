@@ -62,7 +62,12 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), h.timeout)
 	defer cancel()
 
-	userID := r.Context().Value(myMw.UserContextKey).(string)
+	userID := myMw.GetUserID(r.Context())
+	if userID == "" {
+		logger.Error("failed to extract owner id")
+		handlers.WriteError(w, http.StatusBadRequest, errors.New("bad request"))
+		return
+	}
 
 	if req.Username != "" {
 		err := h.updater.ChangeUsername(ctx, userID, req.Username, req.Password)

@@ -152,7 +152,7 @@ func TestCreateHandler(t *testing.T) {
 			require.NoError(t, err)
 
 			req := httptest.NewRequestWithContext(
-				context.WithValue(context.Background(), myMw.UserContextKey, tt.userID),
+				context.WithValue(context.Background(), myMw.UserIDKey, tt.userID),
 				http.MethodPost, "/task",
 				bytes.NewBuffer(body),
 			)
