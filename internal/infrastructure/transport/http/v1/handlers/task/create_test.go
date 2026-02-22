@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -25,6 +26,7 @@ import (
 func TestCreateHandler(t *testing.T) {
 	validDeadline := time.Now().Add(time.Hour)
 	validUserID := gofakeit.UUID()
+	validTaskID := gofakeit.UUID()
 
 	tests := []struct {
 		name         string
@@ -45,13 +47,13 @@ func TestCreateHandler(t *testing.T) {
 			},
 
 			expectedCode: http.StatusCreated,
-			expectedBody: `{"title":"Do homework"}`,
+			expectedBody: fmt.Sprintf(`{"task_id":"%s"}`, validTaskID),
 
 			userID: validUserID,
 
 			mockSetup: func(creator *mocks.Creator) {
 				creator.On("Create", mock.Anything, mock.AnythingOfType("services.CreateTaskCommand")).
-					Return(nil)
+					Return(validTaskID, nil)
 			},
 		},
 		{
@@ -63,13 +65,13 @@ func TestCreateHandler(t *testing.T) {
 			},
 
 			expectedCode: http.StatusCreated,
-			expectedBody: `{"title":"Do homework"}`,
+			expectedBody: fmt.Sprintf(`{"task_id":"%s"}`, validTaskID),
 
 			userID: validUserID,
 
 			mockSetup: func(creator *mocks.Creator) {
 				creator.On("Create", mock.Anything, mock.AnythingOfType("services.CreateTaskCommand")).
-					Return(nil)
+					Return(validTaskID, nil)
 			},
 		},
 		{
@@ -86,7 +88,7 @@ func TestCreateHandler(t *testing.T) {
 
 			mockSetup: func(creator *mocks.Creator) {
 				creator.On("Create", mock.Anything, mock.AnythingOfType("services.CreateTaskCommand")).
-					Return(services.ErrTaskExists)
+					Return("", services.ErrTaskExists)
 			},
 		},
 		{
@@ -103,7 +105,7 @@ func TestCreateHandler(t *testing.T) {
 
 			mockSetup: func(creator *mocks.Creator) {
 				creator.On("Create", mock.Anything, mock.AnythingOfType("services.CreateTaskCommand")).
-					Return(vo.ErrTitleEmpty)
+					Return("", vo.ErrTitleEmpty)
 			},
 		},
 		{
@@ -121,7 +123,7 @@ func TestCreateHandler(t *testing.T) {
 
 			mockSetup: func(creator *mocks.Creator) {
 				creator.On("Create", mock.Anything, mock.AnythingOfType("services.CreateTaskCommand")).
-					Return(services.ErrTaskOwnerNotFound)
+					Return("", services.ErrTaskOwnerNotFound)
 			},
 		},
 		{
@@ -139,7 +141,7 @@ func TestCreateHandler(t *testing.T) {
 
 			mockSetup: func(creator *mocks.Creator) {
 				creator.On("Create", mock.Anything, mock.AnythingOfType("services.CreateTaskCommand")).
-					Return(services.ErrTaskCreateFailed)
+					Return("", services.ErrTaskCreateFailed)
 			},
 		},
 	}

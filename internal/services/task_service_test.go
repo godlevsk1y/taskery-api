@@ -59,6 +59,8 @@ func TestTaskService_Create(t *testing.T) {
 		cmd     services.CreateTaskCommand
 		wantErr error
 
+		isTaskIDExpected bool
+
 		mocksSetup func(repo *mocks.TaskRepository)
 	}{
 		{
@@ -70,6 +72,8 @@ func TestTaskService_Create(t *testing.T) {
 				Deadline:    nil,
 			},
 			wantErr: nil,
+
+			isTaskIDExpected: true,
 
 			mocksSetup: func(repo *mocks.TaskRepository) {
 				repo.On("Create", mock.Anything, mock.AnythingOfType("*models.Task")).
@@ -87,6 +91,8 @@ func TestTaskService_Create(t *testing.T) {
 			},
 			wantErr: nil,
 
+			isTaskIDExpected: true,
+
 			mocksSetup: func(repo *mocks.TaskRepository) {
 				repo.On("Create", mock.Anything, mock.AnythingOfType("*models.Task")).
 					Once().
@@ -103,6 +109,8 @@ func TestTaskService_Create(t *testing.T) {
 			},
 			wantErr: services.ErrTaskExists,
 
+			isTaskIDExpected: false,
+
 			mocksSetup: func(repo *mocks.TaskRepository) {
 				repo.On("Create", mock.Anything, mock.AnythingOfType("*models.Task")).
 					Once().
@@ -118,6 +126,8 @@ func TestTaskService_Create(t *testing.T) {
 				Deadline:    &invalidDeadline,
 			},
 			wantErr: vo.ErrDeadlineBeforeNow,
+
+			isTaskIDExpected: false,
 		},
 		{
 			name: "internal error",
@@ -128,6 +138,8 @@ func TestTaskService_Create(t *testing.T) {
 				Deadline:    &validDeadline,
 			},
 			wantErr: services.ErrTaskCreateFailed,
+
+			isTaskIDExpected: false,
 
 			mocksSetup: func(repo *mocks.TaskRepository) {
 				repo.On("Create", mock.Anything, mock.AnythingOfType("*models.Task")).
@@ -144,6 +156,8 @@ func TestTaskService_Create(t *testing.T) {
 				Deadline:    &validDeadline,
 			},
 			wantErr: services.ErrTaskOwnerNotFound,
+
+			isTaskIDExpected: false,
 
 			mocksSetup: func(repo *mocks.TaskRepository) {
 				repo.On("Create", mock.Anything, mock.AnythingOfType("*models.Task")).
@@ -165,9 +179,13 @@ func TestTaskService_Create(t *testing.T) {
 			require.NotNil(t, service)
 
 			ctx := context.Background()
-			err = service.Create(ctx, tt.cmd)
+			taskID, err := service.Create(ctx, tt.cmd)
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
+				return
+			}
+			if tt.isTaskIDExpected {
+				require.NotEmpty(t, taskID)
 				return
 			}
 

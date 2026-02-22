@@ -16,7 +16,7 @@ import (
 )
 
 type Creator interface {
-	Create(ctx context.Context, cmd services.CreateTaskCommand) error
+	Create(ctx context.Context, cmd services.CreateTaskCommand) (string, error)
 }
 
 type CreateHandler struct {
@@ -66,7 +66,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), h.timeout)
 	defer cancel()
 
-	err = h.creator.Create(ctx, services.CreateTaskCommand{
+	taskID, err := h.creator.Create(ctx, services.CreateTaskCommand{
 		Title:       req.Title,
 		Description: req.Description,
 		OwnerID:     ownerID,
@@ -95,6 +95,6 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	handlers.WriteJSON(w, http.StatusCreated, CreateResponse{
-		Title: req.Title,
+		TaskID: taskID,
 	})
 }

@@ -135,7 +135,7 @@ type CreateTaskCommand struct {
 // Create returns ErrTaskExists if the task already exists,
 // ErrTaskOwnerNotFound if the specified owner does not exist,
 // or ErrTaskCreateFailed if the repository fails to create the task.
-func (ts *TaskService) Create(ctx context.Context, cmd CreateTaskCommand) error {
+func (ts *TaskService) Create(ctx context.Context, cmd CreateTaskCommand) (string, error) {
 	var task *models.Task
 	var err error
 
@@ -145,22 +145,22 @@ func (ts *TaskService) Create(ctx context.Context, cmd CreateTaskCommand) error 
 		task, err = models.NewTaskWithDeadline(cmd.Title, cmd.Description, cmd.OwnerID, *cmd.Deadline)
 	}
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if err := ts.tasksRepo.Create(ctx, task); err != nil {
 		if errors.Is(err, ErrTaskRepoExists) {
-			return ErrTaskExists
+			return "", ErrTaskExists
 		}
 
 		if errors.Is(err, ErrTaskRepoOwnerNotFound) {
-			return ErrTaskOwnerNotFound
+			return "", ErrTaskOwnerNotFound
 		}
 
-		return fmt.Errorf("%w: %s", ErrTaskCreateFailed, err)
+		return "", fmt.Errorf("%w: %s", ErrTaskCreateFailed, err)
 	}
 
-	return nil
+	return task.ID().String(), nil
 }
 
 // ChangeTitle changes the title of the task with the given id.

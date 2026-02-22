@@ -12,7 +12,6 @@ type CreateRequest struct {
 
 // ========= Responses ================
 
-// TODO: REFACTOR THE CREATE TASK RESPONSE
 type CreateResponse struct {
-	Title string `json:"title"`
+	TaskID string `json:"task_id"`
 }
