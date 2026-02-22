@@ -22,7 +22,14 @@ type JWTValidator interface {
 	Validate(token string) (string, error)
 }
 
-// TODO: Write docs for this func
+// JWTAuth returns a middleware that authenticates requests using a JWT.
+// It extracts the token from the "Authorization" header, which must use
+// the "Bearer " schema.
+//
+// If the token is valid, the middleware adds the resulting user ID to the
+// request context using UserContextKey and calls the next handler.
+// Otherwise, it logs the error using logger and returns a
+// 401 Unauthorized response to the client.
 func JWTAuth(validator JWTValidator, logger *slog.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
