@@ -25,6 +25,19 @@ type DeleteHandler struct {
 	validate *validator.Validate
 }
 
+func NewDeleteHandler(
+	deleter Deleter,
+	timeout time.Duration,
+	logger *slog.Logger,
+	validate *validator.Validate) *DeleteHandler {
+	return &DeleteHandler{
+		deleter:  deleter,
+		timeout:  timeout,
+		logger:   logger,
+		validate: validate,
+	}
+}
+
 func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	const op = "handlers.Task.Delete"
 
