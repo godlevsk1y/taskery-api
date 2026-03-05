@@ -61,3 +61,5 @@ func DecodeAndValidate[T any](
 
 	return &req, true
 }
+
+// TODO: write one function, that maps service errors to HTTP status codes

@@ -74,16 +74,8 @@ var (
 	// ErrTaskCreateFailed is returned by TaskService if an internal error occurred during creation
 	ErrTaskCreateFailed = errors.New("failed to create task")
 
-	// ErrTaskChangeTitleFailed is returned by TaskService if an internal error occurred during editing the title
-	ErrTaskChangeTitleFailed = errors.New("failed to change title")
-
-	// ErrTaskChangeDescriptionFailed is returned by TaskService
-	// if an internal error occurred during editing the description
-	ErrTaskChangeDescriptionFailed = errors.New("failed to change description")
-
-	// ErrTaskSetDeadlineFailed is returned by TaskService
-	// if an internal error occurred during setting the deadline
-	ErrTaskSetDeadlineFailed = errors.New("failed to set deadline")
+	// ErrTaskUpdateFailed is returned by TaskService if an internal error ocurred during updating
+	ErrTaskUpdateFailed = errors.New("failed to update task")
 
 	// ErrTaskRemoveDeadlineFailed is returned by TaskService
 	// if an internal error occurred during removing the deadline
@@ -106,6 +98,8 @@ var (
 	// because the caller does not have permission to access the task.
 	ErrTaskAccessDenied = errors.New("task access denied")
 )
+
+// TODO: Rewrite ChangeXxx methods to one Udate method.
 
 // NewTaskService creates a new TaskService instance.
 // It returns nil and error if the task repository is nil
@@ -163,101 +157,53 @@ func (ts *TaskService) Create(ctx context.Context, cmd CreateTaskCommand) (strin
 	return task.ID().String(), nil
 }
 
-// ChangeTitle changes the title of the task with the given id.
-//
-// It looks up the task in the repository, validates and applies the new
-// title, and persists the updated task back to the repository.
-//
-// If the task with the given id does not exist, ChangeTitle returns
-// ErrTaskRepoNotFound. If updating the task fails due to a repository
-// error, it returns ErrTaskChangeTitleFailed wrapping the underlying error.
-//
-// Validation errors returned by task.ChangeTitle are propagated as-is.
-func (ts *TaskService) ChangeTitle(ctx context.Context, id string, ownerID string, new string) error {
-	task, err := ts.tasksRepo.FindByID(ctx, id)
-	if errors.Is(err, ErrTaskRepoNotFound) {
-		return ErrTaskNotFound
-	}
-	if err != nil {
-		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
-	}
-
-	if task.OwnerID().String() != ownerID {
-		return ErrTaskAccessDenied
-	}
-
-	if err := task.ChangeTitle(new); err != nil {
-		return err
-	}
-
-	if err := ts.tasksRepo.Update(ctx, task); err != nil {
-		return fmt.Errorf("%w: %s", ErrTaskChangeTitleFailed, err)
-	}
-
-	return nil
+// UpdateTaskCommand contains all data required to update an existing task.
+// If any field is nil, it should not be updated and should remain the same
+type UpdateTaskCommand struct {
+	Title       *string
+	Description *string
+	Deadline    *time.Time
 }
 
-// ChangeDescription updates the description of the task identified by id.
-//
-// It loads the task from the repository, applies the new description,
-// and persists the updated task.
-//
-// ChangeDescription returns ErrTaskRepoNotFound if no task with the given
-// id exists. It returns ErrTaskChangeDescriptionFailed if the description
-// cannot be changed or if the updated task cannot be saved.
-//
-// The operation respects the provided context ctx.
-func (ts *TaskService) ChangeDescription(ctx context.Context, id string, ownerID string, new string) error {
+// Update edits the task with given id, using the data from UpdateTaskCommand.
+// If each field is nil, the Update function return nil error and does nothing more.
+func (ts *TaskService) Update(ctx context.Context, id string, ownerID string, cmd UpdateTaskCommand) error {
+	if cmd.Title == nil && cmd.Description == nil && cmd.Deadline == nil {
+		return nil
+	}
+
 	task, err := ts.tasksRepo.FindByID(ctx, id)
 	if errors.Is(err, ErrTaskRepoNotFound) {
 		return ErrTaskNotFound
 	}
 	if err != nil {
-		return fmt.Errorf("%w: %s", ErrTaskChangeDescriptionFailed, err)
+		return fmt.Errorf("%w: %s", ErrTaskUpdateFailed, err)
 	}
 
 	if task.OwnerID().String() != ownerID {
 		return ErrTaskAccessDenied
 	}
 
-	if err := task.ChangeDescription(new); err != nil {
-		return err
+	if cmd.Title != nil {
+		if err := task.ChangeTitle(*cmd.Title); err != nil {
+			return err
+		}
+	}
+
+	if cmd.Description != nil {
+		if err := task.ChangeDescription(*cmd.Description); err != nil {
+			return err
+		}
+	}
+
+	if cmd.Deadline != nil {
+		if err := task.SetDeadline(*cmd.Deadline); err != nil {
+			return err
+		}
 	}
 
 	if err := ts.tasksRepo.Update(ctx, task); err != nil {
-		return fmt.Errorf("%w: %s", ErrTaskChangeDescriptionFailed, err)
-	}
-
-	return nil
-}
-
-// SetDeadline sets or updates the deadline of the task with the given id.
-//
-// It loads the task from the repository, applies the new deadline value,
-// and persists the updated task.
-//
-// SetDeadline returns ErrTaskRepoNotFound if the task does not exist.
-// It returns an error if the deadline value is invalid or if the task
-// cannot be updated in the repository.
-func (ts *TaskService) SetDeadline(ctx context.Context, id string, ownerID string, deadline time.Time) error {
-	task, err := ts.tasksRepo.FindByID(ctx, id)
-	if errors.Is(err, ErrTaskRepoNotFound) {
-		return ErrTaskNotFound
-	}
-	if err != nil {
-		return fmt.Errorf("%w: %s", ErrTaskSetDeadlineFailed, err)
-	}
-
-	if task.OwnerID().String() != ownerID {
-		return ErrTaskAccessDenied
-	}
-
-	if err := task.SetDeadline(deadline); err != nil {
-		return err
-	}
-
-	if err := ts.tasksRepo.Update(ctx, task); err != nil {
-		return fmt.Errorf("%w: %s", ErrTaskSetDeadlineFailed, err)
+		return fmt.Errorf("%w: %s", ErrTaskUpdateFailed, err)
 	}
 
 	return nil
