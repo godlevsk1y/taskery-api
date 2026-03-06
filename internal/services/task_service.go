@@ -99,8 +99,6 @@ var (
 	ErrTaskAccessDenied = errors.New("task access denied")
 )
 
-// TODO: Rewrite ChangeXxx methods to one Udate method.
-
 // NewTaskService creates a new TaskService instance.
 // It returns nil and error if the task repository is nil
 func NewTaskService(tasksRepo TaskRepository) (*TaskService, error) {
