@@ -10,6 +10,13 @@ type CreateRequest struct {
 	Deadline    *time.Time `json:"deadline"`
 }
 
+type UpdateRequest struct {
+	TaskID      string     `json:"task_id" validate:"required"`
+	Title       *string    `json:"title"`
+	Description *string    `json:"description"`
+	Deadline    *time.Time `json:"deadline"`
+}
+
 type DeleteRequest struct {
 	TaskID string `json:"task_id" validate:"required"`
 }
@@ -17,5 +24,9 @@ type DeleteRequest struct {
 // ========= Responses ================
 
 type CreateResponse struct {
+	TaskID string `json:"task_id"`
+}
+
+type UpdateResponse struct {
 	TaskID string `json:"task_id"`
 }
