@@ -42,3 +42,17 @@ type CreateResponse struct {
 type UpdateResponse struct {
 	TaskID string `json:"task_id"`
 }
+
+type TaskDTO struct {
+	ID          string     `json:"id"`
+	Title       string     `json:"title"`
+	Description string     `json:"description"`
+	Deadline    *time.Time `json:"deadline"`
+	IsCompleted bool       `json:"is_completed"`
+	CompletedAt *time.Time `json:"completed_at"`
+}
+
+type FindByOwnerResponse struct {
+	OwnerID string    `json:"owner_id"`
+	Tasks   []TaskDTO `json:"tasks"`
+}
