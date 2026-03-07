@@ -21,6 +21,10 @@ type DeleteRequest struct {
 	TaskID string `json:"task_id" validate:"required"`
 }
 
+type RemoveDeadlineRequest struct {
+	TaskID string `json:"task_id" validate:"required"`
+}
+
 // ========= Responses ================
 
 type CreateResponse struct {
