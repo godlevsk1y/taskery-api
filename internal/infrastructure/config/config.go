@@ -30,6 +30,7 @@ type PostgresConnection struct {
 	Username string `yaml:"username" env-required:"true"`
 	Password string `yaml:"password" env-required:"true"`
 	DBName   string `yaml:"db_name" env-required:"true"`
+	SSLMode  string `yaml:"ssl_mode" env-required:"true"`
 }
 
 // MustLoad loads the configuration from the file,

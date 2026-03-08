@@ -11,3 +11,4 @@ postgres_connection:
   username: "name"
   password: "pswrd"
   db_name: "db_name"
+  ssl_mode: "disable"
