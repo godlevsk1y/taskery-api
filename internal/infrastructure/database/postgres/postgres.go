@@ -35,3 +35,11 @@ func MustConnect(cfg config.PostgresConnection) *sql.DB {
 
 	return db
 }
+
+func Close(db *sql.DB) error {
+	if err := db.Close(); err != nil {
+		return fmt.Errorf("unable to close the db: %w", err)
+	}
+
+	return nil
+}
