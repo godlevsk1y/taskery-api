@@ -44,7 +44,13 @@ func TestMustLoad_OK(t *testing.T) {
 		  port: "0000"
 		  username: "name"
 		  password: "pswrd"
-		  db_name: "db_name"`, "\t", "", -1)
+		  db_name: "db_name"  
+		  ssl_mode: "disable"
+
+		jwt:
+		  secret: "some-secret-key"
+		  ttl: 2s
+		  issuer: "issuer"`, "\t", "", -1)
 
 	n, err = configFile.Write([]byte(configText))
 	require.NoError(t, err)

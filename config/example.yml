@@ -12,3 +12,8 @@ postgres_connection:
   password: "pswrd"
   db_name: "db_name"
   ssl_mode: "disable"
+
+jwt:
+  secret: "some-secret-key"
+  ttl: 0s
+  issuer: "issuer"

@@ -14,6 +14,7 @@ type Configuration struct {
 	Environment        string             `yaml:"env" env-default:"local"`
 	HTTPServer         HTTPServer         `yaml:"http_server" env-required:"true"`
 	PostgresConnection PostgresConnection `yaml:"postgres_connection" env-required:"true"`
+	JWT                JWT                `yaml:"jwt" env-required:"true"`
 }
 
 // HTTPServer represents config of the application server
@@ -31,6 +32,12 @@ type PostgresConnection struct {
 	Password string `yaml:"password" env-required:"true"`
 	DBName   string `yaml:"db_name" env-required:"true"`
 	SSLMode  string `yaml:"ssl_mode" env-required:"true"`
+}
+
+type JWT struct {
+	Secret string        `yaml:"secret" env-required:"true"`
+	TTL    time.Duration `yaml:"ttl" env-required:"true"`
+	Issuer string        `yaml:"issuer" env-required:"true"`
 }
 
 // MustLoad loads the configuration from the file,
