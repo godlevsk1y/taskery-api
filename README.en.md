@@ -59,17 +59,17 @@ Follow these steps to set up and run the project locally.
    ```
    Edit `.env` with your database credentials and other settings.
 
-3. **Start database services**:
+3. **Start database and application services in Docker**:
    ```bash
-   docker-compose up -d
+   docker-compose up -d --build
    ```
 
-4. **Build the application**:
+4. **Build the application (on local machine)**:
    ```bash
    go build -o taskery-api ./cmd/taskery-api
    ```
 
-5. **Run the API server**:
+5. **Run the API server (on local machine)**:
    ```bash
    ./taskery-api
    ```
