@@ -24,7 +24,7 @@ COPY --from=builder /app/config ./config
 COPY --from=builder /app/migrations ./migrations
 
 # Expose the required port
-EXPOSE 23456
+EXPOSE 8080
 
 # Run the binary
 CMD ["/app/taskery-api"]
