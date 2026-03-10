@@ -2,7 +2,7 @@ module github.com/cyberbrain-dev/taskery-api
 
 go 1.26
 
-require golang.org/x/crypto v0.46.0
+require golang.org/x/crypto v0.48.0
 
 require (
 	github.com/brianvoe/gofakeit/v7 v7.14.0
@@ -70,8 +70,9 @@ require (
 	go.opentelemetry.io/otel/sdk v1.38.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.38.0 // indirect
 	go.opentelemetry.io/otel/trace v1.38.0 // indirect
-	golang.org/x/sys v0.39.0 // indirect
-	golang.org/x/text v0.32.0 // indirect
+	golang.org/x/net v0.51.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/text v0.34.0 // indirect
 	google.golang.org/grpc v1.78.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3 // indirect

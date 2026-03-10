@@ -40,6 +40,18 @@ func NewCreateHandler(
 	}
 }
 
+// @Summary Create a new task
+// @Description Creates a new task for the authenticated user
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Param request body CreateRequest true "Task creation request"
+// @Success 201 {object} CreateResponse
+// @Failure 400 {object} handlers.ErrorResponse
+// @Failure 401 {object} handlers.ErrorResponse
+// @Failure 403 {object} handlers.ErrorResponse
+// @Failure 500 {object} handlers.ErrorResponse
+// @Router /tasks [post]
 func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	const op = "handlers.Task.Create"
 

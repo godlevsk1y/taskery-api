@@ -18,6 +18,11 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
+// @title Taskery API
+// @version 1.0
+// @description API documentation for Taskery
+// @BasePath /v1
+
 func main() {
 	cfg := config.MustLoad()
 

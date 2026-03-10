@@ -41,6 +41,15 @@ func NewFindByOwnerHandler(
 	}
 }
 
+// @Summary List tasks by owner
+// @Description Retrieves all tasks for the authenticated user
+// @Tags tasks
+// @Produce json
+// @Success 200 {object} FindByOwnerResponse
+// @Failure 400 {object} handlers.ErrorResponse
+// @Failure 401 {object} handlers.ErrorResponse
+// @Failure 500 {object} handlers.ErrorResponse
+// @Router /tasks [get]
 func (h *FindByOwnerHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	const op = "handlers.Task.FindByOwner"
 
