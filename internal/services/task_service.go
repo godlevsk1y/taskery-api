@@ -311,7 +311,10 @@ func (ts *TaskService) FindByOwner(ctx context.Context, ownerID string) ([]*mode
 	return tasks, nil
 }
 
-// TODO: write docs
+// Delete removes a task by its ID, provided the ownerID matches.
+//
+// Returns ErrTaskNotFound if the task doesn't exist, ErrTaskAccessDenied
+// if the owner is incorrect, or ErrTaskDeleteFailed for system errors.
 func (ts *TaskService) Delete(ctx context.Context, id string, ownerID string) error {
 	task, err := ts.tasksRepo.FindByID(ctx, id)
 	if errors.Is(err, ErrTaskRepoNotFound) {
