@@ -1,9 +1,103 @@
 # Taskery REST API
 
-This is an API for the taskery application – a CLI cloud-based application for making tasks and todo lists.
+[English version is available here](./README.en.md)
 
-The plan of development:
-1. Create domain logic layer (models, rules, value objects, etc.) following DDD principles as well as possible 
-2. Create application layer with services, that would provide the interface to the core application
-3. Create layer for data access
-4. Design and implement the REST API 
+REST API для **Taskery** — системы управления задачами и todo с синхронизацией, разработанной для использования клиентом командной строки.
+
+## Цель
+
+Этот проект создан для практики:
+- Проектирования бэкенд-приложения с использованием принципов DDD
+- Разделения доменной логики от прикладного и инфраструктурного уровней
+- Создания чистого и поддерживаемого REST API
+
+## Архитектура
+
+Приложение структурировано по уровням:
+
+- **Доменный уровень**  
+  Основная бизнес-логика: сущности, объекты-значения, доменные правила
+
+- **Прикладной уровень**  
+  Сценарии использования и сервисы, координирующие доменную логику
+
+- **Инфраструктурный уровень**  
+  Доступ к данным и внешние интеграции (например, JWT провайдер)
+
+- **Транспортный уровень**  
+  REST API (HTTP обработчики, DTO)
+
+## Технологии
+
+- Go 1.26+
+- REST API
+- PostgreSQL
+- JWT Авторизация
+- Docker
+
+## Начало работы
+
+Выполните следующие шаги для настройки и запуска проекта локально.
+
+### Предварительные требования
+
+- [Go 1.26+](https://go.dev/dl/)
+- [Docker и Docker Compose](https://www.docker.com/products/docker-desktop)
+- PostgreSQL клиент (опционально для отладки)
+
+### Настройка
+
+1. **Клонирование репозитория**:
+   ```bash
+   git clone https://github.com/godlevsk1y/taskery-api.git
+   cd taskery-api
+   ```
+
+2. **Настройка переменных окружения**:
+   ```bash
+   cp example.env .env
+   ```
+   Отредактируйте `.env` с вашими учетными данными базы данных и другими настройками.
+
+3. **Запуск сервисов базы данных**:
+   ```bash
+   docker-compose up -d
+   ```
+
+4. **Сборка приложения**:
+   ```bash
+   go build -o taskery-api ./cmd/taskery-api
+   ```
+
+5. **Запуск API сервера**:
+   ```bash
+   ./taskery-api
+   ```
+
+Сервер будет доступен по адресу `http://localhost:8080`.
+
+### Документация API
+
+Интерактивная документация API доступна по адресу:
+```
+http://localhost:8080/swagger/index.html
+```
+
+## Участие в разработке
+
+1. Создайте форк репозитория
+2. Создайте новую ветку (`git checkout -b feature/AmazingFeature`)
+3. Внесите изменения (`git commit -m 'Add some AmazingFeature'`)
+4. Запушите изменения (`git push origin feature/AmazingFeature`)
+5. Откройте Pull Request
+
+## Тестирование
+
+Запустите все тесты с помощью:
+```bash
+go test ./...
+```
+
+## Лицензия
+
+Этот проект лицензирован по лицензии MIT — подробности см. в файле [LICENSE](LICENSE).
