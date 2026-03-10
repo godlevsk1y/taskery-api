@@ -54,6 +54,7 @@ type RouterOptions struct {
 func NewRouter(opts RouterOptions) *chi.Mux {
 	r := chi.NewRouter()
 
+	r.Use(middleware.CleanPath)
 	r.Use(middleware.RequestID, middleware.Recoverer)
 
 	r.Route("/api/v1", func(r chi.Router) {
