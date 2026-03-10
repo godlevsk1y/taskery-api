@@ -11,6 +11,7 @@ import (
 
 	"github.com/cyberbrain-dev/taskery-api/internal/infrastructure/auth/jwt"
 	"github.com/cyberbrain-dev/taskery-api/internal/infrastructure/config"
+	"github.com/cyberbrain-dev/taskery-api/internal/infrastructure/database"
 	"github.com/cyberbrain-dev/taskery-api/internal/infrastructure/database/postgres"
 	v1 "github.com/cyberbrain-dev/taskery-api/internal/infrastructure/transport/http/v1"
 	"github.com/cyberbrain-dev/taskery-api/internal/services"
@@ -25,6 +26,12 @@ func main() {
 	logger.Info("Starting taskery-api...")
 
 	db := postgres.MustConnect(cfg.PostgresConnection)
+
+	err := database.RunMigrations(postgres.DSN(cfg.PostgresConnection))
+	if err != nil {
+		logger.Error("Failed to apply migrations", slog.Any("err", err))
+		os.Exit(-1)
+	}
 
 	logger.Info("Connection to database succeeded.")
 
