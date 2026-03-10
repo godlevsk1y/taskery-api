@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS idx_unique_owner_id_title;
