@@ -6,8 +6,8 @@ http_server:
   idle_timeout: 0s
 
 postgres_connection:
-  host: "localhost"
-  port: "0000"
+  host: ${POSTGRES_HOST}
+  port: ${POSTGRES_PORT}
   username: "name"
   password: ${POSTGRES_PASSWORD}
   db_name: "db_name"

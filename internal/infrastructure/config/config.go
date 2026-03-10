@@ -26,8 +26,8 @@ type HTTPServer struct {
 
 // PostgresConnection represents config of postgres credentials
 type PostgresConnection struct {
-	Host     string `yaml:"host" env-required:"true"`
-	Port     string `yaml:"port" env-required:"true"`
+	Host     string `yaml:"host" env-required:"true" env:"POSTGRES_HOST"`
+	Port     string `yaml:"port" env-required:"true" env:"POSTGRES_PORT"`
 	Username string `yaml:"username" env-required:"true"`
 	Password string `yaml:"password" env-required:"true" env:"POSTGRES_PASSWORD"`
 	DBName   string `yaml:"db_name" env-required:"true"`
