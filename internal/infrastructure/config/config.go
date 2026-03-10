@@ -29,7 +29,7 @@ type PostgresConnection struct {
 	Host     string `yaml:"host" env-required:"true"`
 	Port     string `yaml:"port" env-required:"true"`
 	Username string `yaml:"username" env-required:"true"`
-	Password string `yaml:"password" env-required:"true"`
+	Password string `yaml:"password" env-required:"true" env:"POSTGRES_PASSWORD"`
 	DBName   string `yaml:"db_name" env-required:"true"`
 	SSLMode  string `yaml:"ssl_mode" env-required:"true"`
 }
