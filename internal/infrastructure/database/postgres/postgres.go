@@ -15,12 +15,13 @@ func MustConnect(cfg config.PostgresConnection) *sql.DB {
 	const op = "postgres.Connect"
 
 	dsn := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		cfg.Host,
 		cfg.Port,
 		cfg.Username,
 		cfg.Password,
 		cfg.DBName,
+		cfg.SSLMode,
 	)
 
 	db, err := sql.Open("postgres", dsn)
