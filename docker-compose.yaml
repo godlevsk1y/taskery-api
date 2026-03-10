@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: taskery_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: taskery
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: taskery_db
+    ports:
+      - "45678:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: taskery_api
+    depends_on:
+      - db
+    env_file:
+      - .env
+    volumes:
+      - ./.env:/app/.env
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+
+    ports:
+      - "23456:23456"
+
+volumes:
+  postgres_data:
