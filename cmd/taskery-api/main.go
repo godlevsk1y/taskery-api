@@ -16,13 +16,19 @@ import (
 	v1 "github.com/cyberbrain-dev/taskery-api/internal/infrastructure/transport/http/v1"
 	"github.com/cyberbrain-dev/taskery-api/internal/services"
 	"github.com/go-playground/validator/v10"
+	httpSwagger "github.com/swaggo/http-swagger"
+
+	_ "github.com/cyberbrain-dev/taskery-api/docs"
 )
 
 // @title Taskery API
 // @version 1.0
 // @description API documentation for Taskery
-// @BasePath /v1
-
+// @BasePath /api/v1
+// @securityDefinitions.apiKey  BearerAuth
+// @in                          header
+// @name                        Authorization
+// @description                 Type "Bearer " followed by your JWT token.
 func main() {
 	cfg := config.MustLoad()
 
@@ -78,6 +84,14 @@ func main() {
 		Validator:     vld,
 		Timeout:       cfg.HTTPServer.Timeout,
 	})
+
+	logger.Info(cfg.Environment)
+
+	if cfg.Environment == "local" || cfg.Environment == "dev" {
+		router.Get("/swagger/*", httpSwagger.Handler(
+			httpSwagger.URL("/swagger/doc.json"),
+		))
+	}
 
 	logger.Info(
 		"Launching the server...",

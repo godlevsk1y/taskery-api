@@ -45,6 +45,7 @@ func NewRemoveDeadlineHandler(
 // @Accept json
 // @Produce json
 // @Param request body RemoveDeadlineRequest true "Task deadline removal request"
+// @Security     BearerAuth
 // @Success 204 {object} nil
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 401 {object} handlers.ErrorResponse

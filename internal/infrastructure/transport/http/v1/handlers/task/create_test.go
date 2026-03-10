@@ -42,7 +42,7 @@ func TestCreateHandler(t *testing.T) {
 			name: "success without validDeadline",
 			payload: task.CreateRequest{
 				Title:       "Do homework",
-				Description: "Some description",
+				Description: new("Some description"),
 				Deadline:    nil,
 			},
 
@@ -60,7 +60,7 @@ func TestCreateHandler(t *testing.T) {
 			name: "success without deadline",
 			payload: task.CreateRequest{
 				Title:       "Do homework",
-				Description: "Some description",
+				Description: new("Some description"),
 				Deadline:    &validDeadline,
 			},
 
@@ -78,7 +78,7 @@ func TestCreateHandler(t *testing.T) {
 			name: "task already exists",
 			payload: task.CreateRequest{
 				Title:       "Do homework",
-				Description: "Some description",
+				Description: new("Some description"),
 				Deadline:    nil,
 			},
 			expectedCode: http.StatusConflict,
@@ -95,7 +95,7 @@ func TestCreateHandler(t *testing.T) {
 			name: "empty title",
 			payload: task.CreateRequest{
 				Title:       "",
-				Description: "Some description",
+				Description: new("Some description"),
 				Deadline:    nil,
 			},
 			expectedCode: http.StatusBadRequest,
@@ -112,7 +112,7 @@ func TestCreateHandler(t *testing.T) {
 			name: "user not exists",
 			payload: task.CreateRequest{
 				Title:       "Do homework",
-				Description: "Some description",
+				Description: new("Some description"),
 				Deadline:    nil,
 			},
 
@@ -130,7 +130,7 @@ func TestCreateHandler(t *testing.T) {
 			name: "internal server error",
 			payload: task.CreateRequest{
 				Title:       "Do homework",
-				Description: "Some description",
+				Description: new("Some description"),
 				Deadline:    nil,
 			},
 

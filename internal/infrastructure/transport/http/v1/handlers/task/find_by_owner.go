@@ -45,6 +45,7 @@ func NewFindByOwnerHandler(
 // @Description Retrieves all tasks for the authenticated user
 // @Tags tasks
 // @Produce json
+// @Security     BearerAuth
 // @Success 200 {object} FindByOwnerResponse
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 401 {object} handlers.ErrorResponse

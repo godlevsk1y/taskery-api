@@ -47,6 +47,7 @@ func NewUpdateHandler(
 // @Accept json
 // @Produce json
 // @Param request body UpdateRequest true "User update request"
+// @Security BearerAuth
 // @Success 200 {object} UpdateResponse
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 401 {object} handlers.ErrorResponse

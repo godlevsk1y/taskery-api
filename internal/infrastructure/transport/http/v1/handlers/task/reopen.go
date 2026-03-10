@@ -45,6 +45,7 @@ func NewReopenHandler(
 // @Accept json
 // @Produce json
 // @Param request body ReopenRequest true "Task reopen request"
+// @Security     BearerAuth
 // @Success 204 {object} nil
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 401 {object} handlers.ErrorResponse

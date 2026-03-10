@@ -46,6 +46,7 @@ func NewCreateHandler(
 // @Accept json
 // @Produce json
 // @Param request body CreateRequest true "Task creation request"
+// @Security     BearerAuth
 // @Success 201 {object} CreateResponse
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 401 {object} handlers.ErrorResponse
@@ -84,7 +85,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	taskID, err := h.creator.Create(ctx, services.CreateTaskCommand{
 		Title:       req.Title,
-		Description: req.Description,
+		Description: *req.Description,
 		OwnerID:     ownerID,
 		Deadline:    req.Deadline,
 	})

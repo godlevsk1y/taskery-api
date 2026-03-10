@@ -45,6 +45,7 @@ func NewCompleteHandler(
 // @Accept json
 // @Produce json
 // @Param request body CompleteRequest true "Task completion request"
+// @Security     BearerAuth
 // @Success 204 {object} nil
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 401 {object} handlers.ErrorResponse
