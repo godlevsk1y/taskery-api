@@ -9,7 +9,7 @@ postgres_connection:
   host: "localhost"
   port: "0000"
   username: "name"
-  password: "pswrd"
+  password: ${POSTGRES_PASSWORD}
   db_name: "db_name"
   ssl_mode: "disable"
 
