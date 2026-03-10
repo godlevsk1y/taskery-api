@@ -3,7 +3,6 @@ package services_test
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
@@ -59,6 +58,8 @@ func TestTaskService_Create(t *testing.T) {
 		cmd     services.CreateTaskCommand
 		wantErr error
 
+		isTaskIDExpected bool
+
 		mocksSetup func(repo *mocks.TaskRepository)
 	}{
 		{
@@ -70,6 +71,8 @@ func TestTaskService_Create(t *testing.T) {
 				Deadline:    nil,
 			},
 			wantErr: nil,
+
+			isTaskIDExpected: true,
 
 			mocksSetup: func(repo *mocks.TaskRepository) {
 				repo.On("Create", mock.Anything, mock.AnythingOfType("*models.Task")).
@@ -87,6 +90,8 @@ func TestTaskService_Create(t *testing.T) {
 			},
 			wantErr: nil,
 
+			isTaskIDExpected: true,
+
 			mocksSetup: func(repo *mocks.TaskRepository) {
 				repo.On("Create", mock.Anything, mock.AnythingOfType("*models.Task")).
 					Once().
@@ -103,6 +108,8 @@ func TestTaskService_Create(t *testing.T) {
 			},
 			wantErr: services.ErrTaskExists,
 
+			isTaskIDExpected: false,
+
 			mocksSetup: func(repo *mocks.TaskRepository) {
 				repo.On("Create", mock.Anything, mock.AnythingOfType("*models.Task")).
 					Once().
@@ -118,6 +125,8 @@ func TestTaskService_Create(t *testing.T) {
 				Deadline:    &invalidDeadline,
 			},
 			wantErr: vo.ErrDeadlineBeforeNow,
+
+			isTaskIDExpected: false,
 		},
 		{
 			name: "internal error",
@@ -128,6 +137,8 @@ func TestTaskService_Create(t *testing.T) {
 				Deadline:    &validDeadline,
 			},
 			wantErr: services.ErrTaskCreateFailed,
+
+			isTaskIDExpected: false,
 
 			mocksSetup: func(repo *mocks.TaskRepository) {
 				repo.On("Create", mock.Anything, mock.AnythingOfType("*models.Task")).
@@ -144,6 +155,8 @@ func TestTaskService_Create(t *testing.T) {
 				Deadline:    &validDeadline,
 			},
 			wantErr: services.ErrTaskOwnerNotFound,
+
+			isTaskIDExpected: false,
 
 			mocksSetup: func(repo *mocks.TaskRepository) {
 				repo.On("Create", mock.Anything, mock.AnythingOfType("*models.Task")).
@@ -165,9 +178,13 @@ func TestTaskService_Create(t *testing.T) {
 			require.NotNil(t, service)
 
 			ctx := context.Background()
-			err = service.Create(ctx, tt.cmd)
+			taskID, err := service.Create(ctx, tt.cmd)
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
+				return
+			}
+			if tt.isTaskIDExpected {
+				require.NotEmpty(t, taskID)
 				return
 			}
 
@@ -176,27 +193,28 @@ func TestTaskService_Create(t *testing.T) {
 	}
 }
 
-func TestTaskService_ChangeTitle(t *testing.T) {
+func TestTaskService_Update(t *testing.T) {
 	realTaskID := uuid.New()
 	realOwnerID := uuid.New()
-	newTitle := "New Task Title"
 
 	tests := []struct {
-		name     string
-		id       string
-		ownerID  string
-		newTitle string
-
-		wantErr error
+		name        string
+		id          string
+		cmd         services.UpdateTaskCommand
+		expectedErr error
 
 		mocksSetup func(repo *mocks.TaskRepository, taskToReturn *models.Task)
 	}{
 		{
-			name:     "success",
-			id:       realTaskID.String(),
-			ownerID:  realOwnerID.String(),
-			newTitle: newTitle,
-			wantErr:  nil,
+			name: "success with all fields",
+			id:   realTaskID.String(),
+			cmd: services.UpdateTaskCommand{
+				Title:       new("new title"),
+				Description: new("some new description"),
+				Deadline:    new(time.Now().Add(2 * time.Hour)),
+			},
+			expectedErr: nil,
+
 			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
 				repo.On("FindByID", mock.Anything, realTaskID.String()).
 					Once().
@@ -208,47 +226,16 @@ func TestTaskService_ChangeTitle(t *testing.T) {
 			},
 		},
 		{
-			name:     "task not found",
-			id:       realTaskID.String(),
-			ownerID:  realOwnerID.String(),
-			newTitle: newTitle,
-			wantErr:  services.ErrTaskNotFound,
-			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
-				repo.On("FindByID", mock.Anything, realTaskID.String()).
-					Once().
-					Return(nil, services.ErrTaskRepoNotFound)
+			name: "success with one field",
+			id:   realTaskID.String(),
+			cmd: services.UpdateTaskCommand{
+				Title:       new("new title"),
+				Description: nil,
+				Deadline:    nil,
 			},
-		},
-		{
-			name:     "access denied",
-			id:       realTaskID.String(),
-			ownerID:  uuid.New().String(),
-			newTitle: newTitle,
-			wantErr:  services.ErrTaskAccessDenied,
-			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
-				repo.On("FindByID", mock.Anything, realTaskID.String()).
-					Once().
-					Return(taskToReturn, nil)
-			},
-		},
-		{
-			name:     "change title validation error",
-			id:       realTaskID.String(),
-			ownerID:  realOwnerID.String(),
-			newTitle: "",
-			wantErr:  vo.ErrTitleEmpty,
-			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
-				repo.On("FindByID", mock.Anything, realTaskID.String()).
-					Once().
-					Return(taskToReturn, nil)
-			},
-		},
-		{
-			name:     "update repository error",
-			id:       realTaskID.String(),
-			ownerID:  realOwnerID.String(),
-			newTitle: newTitle,
-			wantErr:  services.ErrTaskChangeTitleFailed,
+
+			expectedErr: nil,
+
 			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
 				repo.On("FindByID", mock.Anything, realTaskID.String()).
 					Once().
@@ -256,7 +243,74 @@ func TestTaskService_ChangeTitle(t *testing.T) {
 
 				repo.On("Update", mock.Anything, mock.AnythingOfType("*models.Task")).
 					Once().
-					Return(errors.New("repo failure"))
+					Return(nil)
+			},
+		},
+		{
+			name: "success with no fields",
+			id:   realTaskID.String(),
+			cmd: services.UpdateTaskCommand{
+				Title:       nil,
+				Description: nil,
+				Deadline:    nil,
+			},
+
+			expectedErr: nil,
+			mocksSetup:  nil,
+		},
+		{
+			name: "task not found",
+			id:   uuid.New().String(),
+			cmd: services.UpdateTaskCommand{
+				Title:       new("new title"),
+				Description: nil,
+				Deadline:    nil,
+			},
+
+			expectedErr: services.ErrTaskNotFound,
+
+			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
+				repo.On("FindByID", mock.Anything, mock.AnythingOfType("string")).
+					Once().
+					Return(nil, services.ErrTaskRepoNotFound)
+			},
+		},
+		{
+			name: "internal update error",
+			id:   realTaskID.String(),
+			cmd: services.UpdateTaskCommand{
+				Title:       new("new title"),
+				Description: nil,
+				Deadline:    nil,
+			},
+
+			expectedErr: services.ErrTaskUpdateFailed,
+
+			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
+				repo.On("FindByID", mock.Anything, realTaskID.String()).
+					Once().
+					Return(taskToReturn, nil)
+
+				repo.On("Update", mock.Anything, mock.AnythingOfType("*models.Task")).
+					Once().
+					Return(errors.New("internal db error"))
+			},
+		},
+		{
+			name: "invalid field",
+			id:   realTaskID.String(),
+			cmd: services.UpdateTaskCommand{
+				Title:       new(""),
+				Description: new("some new description"),
+				Deadline:    new(time.Now().Add(2 * time.Hour)),
+			},
+
+			expectedErr: vo.ErrTitleEmpty,
+
+			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
+				repo.On("FindByID", mock.Anything, realTaskID.String()).
+					Once().
+					Return(taskToReturn, nil)
 			},
 		},
 	}
@@ -268,7 +322,7 @@ func TestTaskService_ChangeTitle(t *testing.T) {
 				OwnerID:     realOwnerID.String(),
 				Title:       "Old Title",
 				Description: "Some Description",
-				Deadline:    nil,
+				Deadline:    new(time.Now().Add(time.Hour)),
 				IsCompleted: false,
 				CompletedAt: nil,
 			})
@@ -285,237 +339,23 @@ func TestTaskService_ChangeTitle(t *testing.T) {
 			require.NotNil(t, service)
 
 			ctx := context.Background()
-			err = service.ChangeTitle(ctx, tt.id, tt.ownerID, tt.newTitle)
+			err = service.Update(ctx, tt.id, realOwnerID.String(), tt.cmd)
 
-			if tt.wantErr != nil {
-				require.ErrorIs(t, err, tt.wantErr)
+			if tt.expectedErr != nil {
+				require.ErrorIs(t, err, tt.expectedErr)
 				return
 			}
 
-			require.Equal(t, tt.newTitle, taskToReturn.Title().String())
-			require.NoError(t, err)
-		})
-	}
-}
-
-func TestTaskService_ChangeDescription(t *testing.T) {
-	realTaskID := uuid.New()
-	realOwnerID := uuid.New()
-	newDescription := "Updated description"
-
-	tests := []struct {
-		name        string
-		id          string
-		ownerID     string
-		newDesc     string
-		taskOwnerID uuid.UUID
-
-		wantErr error
-
-		mocksSetup func(repo *mocks.TaskRepository, taskToReturn *models.Task)
-	}{
-		{
-			name:        "success",
-			id:          realTaskID.String(),
-			ownerID:     realOwnerID.String(),
-			newDesc:     newDescription,
-			taskOwnerID: realOwnerID,
-
-			wantErr: nil,
-
-			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
-				repo.On("FindByID", mock.Anything, realTaskID.String()).
-					Once().
-					Return(taskToReturn, nil)
-
-				repo.On("Update", mock.Anything, mock.AnythingOfType("*models.Task")).
-					Once().
-					Return(nil)
-			},
-		},
-		{
-			name:        "task not found",
-			id:          realTaskID.String(),
-			ownerID:     realOwnerID.String(),
-			newDesc:     newDescription,
-			taskOwnerID: realOwnerID,
-
-			wantErr: services.ErrTaskNotFound,
-
-			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
-				repo.On("FindByID", mock.Anything, realTaskID.String()).
-					Once().
-					Return(nil, services.ErrTaskRepoNotFound)
-			},
-		},
-		{
-			name:        "access denied",
-			id:          realTaskID.String(),
-			ownerID:     uuid.New().String(), // different owner
-			newDesc:     newDescription,
-			taskOwnerID: realOwnerID,
-
-			wantErr: services.ErrTaskAccessDenied,
-
-			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
-				repo.On("FindByID", mock.Anything, realTaskID.String()).
-					Once().
-					Return(taskToReturn, nil)
-			},
-		},
-		{
-			name:        "update fails",
-			id:          realTaskID.String(),
-			ownerID:     realOwnerID.String(),
-			newDesc:     newDescription,
-			taskOwnerID: realOwnerID,
-
-			wantErr: services.ErrTaskChangeDescriptionFailed,
-
-			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
-				repo.On("FindByID", mock.Anything, realTaskID.String()).
-					Once().
-					Return(taskToReturn, nil)
-
-				repo.On("Update", mock.Anything, mock.AnythingOfType("*models.Task")).
-					Once().
-					Return(fmt.Errorf("some error"))
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			taskToReturn, err := models.NewTaskFromDB(models.TaskFromDBParams{
-				ID:          realTaskID.String(),
-				OwnerID:     tt.taskOwnerID.String(),
-				Title:       "Some Title",
-				Description: "Some Description",
-				Deadline:    nil,
-				IsCompleted: false,
-				CompletedAt: nil,
-			})
-			require.NoError(t, err)
-			require.NotNil(t, taskToReturn)
-
-			repo := new(mocks.TaskRepository)
-			if tt.mocksSetup != nil {
-				tt.mocksSetup(repo, taskToReturn)
+			if tt.cmd.Title != nil {
+				require.Equal(t, *tt.cmd.Title, taskToReturn.Title().String())
 			}
 
-			service, err := services.NewTaskService(repo)
-			require.NoError(t, err)
-			require.NotNil(t, service)
-
-			ctx := context.Background()
-			err = service.ChangeDescription(ctx, tt.id, tt.ownerID, tt.newDesc)
-
-			if tt.wantErr != nil {
-				require.ErrorIs(t, err, tt.wantErr)
-				return
+			if tt.cmd.Description != nil {
+				require.Equal(t, *tt.cmd.Description, taskToReturn.Description().String())
 			}
 
-			require.Equal(t, tt.newDesc, taskToReturn.Description().String())
-			require.NoError(t, err)
-		})
-	}
-}
-
-func TestTaskService_SetDeadline(t *testing.T) {
-	realTaskID := uuid.New()
-	realOwnerID := uuid.New()
-	validDeadline := time.Now().Add(1 * time.Hour)
-
-	tests := []struct {
-		name             string
-		id               string
-		previousDeadline *time.Time
-		deadline         time.Time
-
-		wantErr error
-
-		mocksSetup func(repo *mocks.TaskRepository, taskToReturn *models.Task)
-	}{
-		{
-			name:             "success without deadline before",
-			id:               realTaskID.String(),
-			previousDeadline: nil,
-			deadline:         time.Now().Add(1 * time.Hour),
-
-			wantErr: nil,
-
-			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
-				repo.On("FindByID", mock.Anything, realTaskID.String()).
-					Once().
-					Return(taskToReturn, nil)
-
-				repo.On("Update", mock.Anything, mock.AnythingOfType("*models.Task")).
-					Once().
-					Return(nil)
-			},
-		},
-		{
-			name:             "success with existing deadline before",
-			id:               realTaskID.String(),
-			previousDeadline: &validDeadline,
-			deadline:         time.Now().Add(1 * time.Hour),
-
-			wantErr: nil,
-
-			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
-				repo.On("FindByID", mock.Anything, realTaskID.String()).
-					Once().
-					Return(taskToReturn, nil)
-
-				repo.On("Update", mock.Anything, mock.AnythingOfType("*models.Task")).
-					Once().
-					Return(nil)
-			},
-		},
-		{
-			name:     "invalid deadline",
-			id:       realTaskID.String(),
-			deadline: time.Now().Add(-1 * time.Hour),
-
-			wantErr: vo.ErrDeadlineBeforeNow,
-
-			mocksSetup: func(repo *mocks.TaskRepository, taskToReturn *models.Task) {
-				repo.On("FindByID", mock.Anything, realTaskID.String()).
-					Once().
-					Return(taskToReturn, nil)
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			taskToReturn, err := models.NewTaskFromDB(models.TaskFromDBParams{
-				ID:          realTaskID.String(),
-				OwnerID:     realOwnerID.String(),
-				Title:       "Some Title",
-				Description: "Some Description",
-				Deadline:    tt.previousDeadline,
-				IsCompleted: false,
-				CompletedAt: nil,
-			})
-			require.NoError(t, err)
-			require.NotNil(t, taskToReturn)
-
-			repo := new(mocks.TaskRepository)
-			if tt.mocksSetup != nil {
-				tt.mocksSetup(repo, taskToReturn)
-			}
-
-			service, err := services.NewTaskService(repo)
-			require.NoError(t, err)
-			require.NotNil(t, service)
-
-			ctx := context.Background()
-			err = service.SetDeadline(ctx, tt.id, realOwnerID.String(), tt.deadline)
-
-			if tt.wantErr != nil {
-				require.ErrorIs(t, err, tt.wantErr)
-				return
+			if tt.cmd.Deadline != nil {
+				require.Equal(t, *tt.cmd.Deadline, taskToReturn.Deadline().Time())
 			}
 
 			require.NoError(t, err)

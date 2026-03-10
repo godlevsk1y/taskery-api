@@ -38,6 +38,17 @@ func NewLoginHandler(
 	}
 }
 
+// @Summary Login user
+// @Description Authenticate user and return JWT token
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body LoginRequest true "Login request"
+// @Success 200 {object} LoginResponse
+// @Failure 400 {object} handlers.ErrorResponse
+// @Failure 401 {object} handlers.ErrorResponse
+// @Failure 500 {object} handlers.ErrorResponse
+// @Router /auth/login [post]
 func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	const op = "handlers.auth.Login"
 

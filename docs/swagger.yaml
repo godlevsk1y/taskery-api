@@ -1,0 +1,603 @@
+basePath: /api/v1
+definitions:
+  auth.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  auth.LoginResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  auth.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  auth.RegisterResponse:
+    properties:
+      email:
+        type: string
+      username:
+        type: string
+    type: object
+  handlers.ErrorResponse:
+    properties:
+      error:
+        type: string
+      errors:
+        items:
+          $ref: '#/definitions/handlers.FieldError'
+        type: array
+    type: object
+  handlers.FieldError:
+    properties:
+      error:
+        type: string
+      field:
+        type: string
+    type: object
+  task.CompleteRequest:
+    properties:
+      task_id:
+        type: string
+    required:
+    - task_id
+    type: object
+  task.CreateRequest:
+    properties:
+      deadline:
+        type: string
+      description:
+        type: string
+      title:
+        type: string
+    required:
+    - description
+    - title
+    type: object
+  task.CreateResponse:
+    properties:
+      task_id:
+        type: string
+    type: object
+  task.DeleteRequest:
+    properties:
+      task_id:
+        type: string
+    required:
+    - task_id
+    type: object
+  task.FindByOwnerResponse:
+    properties:
+      owner_id:
+        type: string
+      tasks:
+        items:
+          $ref: '#/definitions/task.TaskDTO'
+        type: array
+    type: object
+  task.RemoveDeadlineRequest:
+    properties:
+      task_id:
+        type: string
+    required:
+    - task_id
+    type: object
+  task.ReopenRequest:
+    properties:
+      task_id:
+        type: string
+    required:
+    - task_id
+    type: object
+  task.TaskDTO:
+    properties:
+      completed_at:
+        type: string
+      deadline:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      is_completed:
+        type: boolean
+      title:
+        type: string
+    type: object
+  task.UpdateRequest:
+    properties:
+      deadline:
+        type: string
+      description:
+        type: string
+      task_id:
+        type: string
+      title:
+        type: string
+    required:
+    - task_id
+    type: object
+  task.UpdateResponse:
+    properties:
+      task_id:
+        type: string
+    type: object
+  user.DeleteRequest:
+    properties:
+      password:
+        type: string
+    required:
+    - password
+    type: object
+  user.UpdateRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    type: object
+  user.UpdateResponse:
+    properties:
+      email:
+        type: string
+      username:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: API documentation for Taskery
+  title: Taskery API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return JWT token
+      parameters:
+      - description: Login request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Login user
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with username, email, and password
+      parameters:
+      - description: Registration request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/auth.RegisterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Register new user
+      tags:
+      - auth
+  /tasks:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes an existing task for the authenticated user
+      parameters:
+      - description: Task deletion request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/task.DeleteRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a task
+      tags:
+      - tasks
+    get:
+      description: Retrieves all tasks for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/task.FindByOwnerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List tasks by owner
+      tags:
+      - tasks
+    patch:
+      consumes:
+      - application/json
+      description: Updates an existing task for the authenticated user
+      parameters:
+      - description: Task update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/task.UpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/task.UpdateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a task
+      tags:
+      - tasks
+    post:
+      consumes:
+      - application/json
+      description: Creates a new task for the authenticated user
+      parameters:
+      - description: Task creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/task.CreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/task.CreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new task
+      tags:
+      - tasks
+  /tasks/complete:
+    patch:
+      consumes:
+      - application/json
+      description: Marks a task as completed for the authenticated user
+      parameters:
+      - description: Task completion request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/task.CompleteRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Complete a task
+      tags:
+      - tasks
+  /tasks/remove-deadline:
+    patch:
+      consumes:
+      - application/json
+      description: Removes the deadline from a task for the authenticated user
+      parameters:
+      - description: Task deadline removal request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/task.RemoveDeadlineRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Remove task deadline
+      tags:
+      - tasks
+  /tasks/reopen:
+    patch:
+      consumes:
+      - application/json
+      description: Reopens a completed task for the authenticated user
+      parameters:
+      - description: Task reopen request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/task.ReopenRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Reopen a task
+      tags:
+      - tasks
+  /user:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes the authenticated user's account
+      parameters:
+      - description: User delete request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.DeleteRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a user
+      tags:
+      - users
+    patch:
+      consumes:
+      - application/json
+      description: Updates the authenticated user's account information
+      parameters:
+      - description: User update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.UpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.UpdateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a user
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer " followed by your JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

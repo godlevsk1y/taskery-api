@@ -1,68 +1,103 @@
 # Taskery REST API
 
-REST API для **Taskery** — системы управления задачами и списками дел с синхронизацией, предназначенной для использования через CLI-клиент.
+[English version is available here](./README.en.md)
 
-## Назначение
+REST API для **Taskery** — системы управления задачами и todo с синхронизацией, разработанной для использования клиентом командной строки.
+
+## Цель
 
 Этот проект создан для практики:
-- проектирования backend-приложения с использованием принципов DDD (Domain-Driven Design)
-- разделения доменной логики, прикладного и инфраструктурного слоёв
-- построения чистого и поддерживаемого REST API
+- Проектирования бэкенд-приложения с использованием принципов DDD
+- Разделения доменной логики от прикладного и инфраструктурного уровней
+- Создания чистого и поддерживаемого REST API
 
 ## Архитектура
 
-Приложение структурировано по слоям:
+Приложение структурировано по уровням:
 
-- **Доменный слой (Domain layer)**  
-  Основная бизнес-логика: сущности, value objects, доменные правила
+- **Доменный уровень**  
+  Основная бизнес-логика: сущности, объекты-значения, доменные правила
 
-- **Прикладной слой (Application layer)**  
-  Сценарии использования и сервисы, которые координируют доменную логику
+- **Прикладной уровень**  
+  Сценарии использования и сервисы, координирующие доменную логику
 
-- **Инфраструктурный слой (Infrastructure layer)**  
-  Доступ к данным и внешние интеграции (например, провайдер JWT)
+- **Инфраструктурный уровень**  
+  Доступ к данным и внешние интеграции (например, JWT провайдер)
 
-- **Транспортный слой (Transport layer)**  
-  REST API (HTTP-обработчики, DTO)
+- **Транспортный уровень**  
+  REST API (HTTP обработчики, DTO)
 
 ## Технологии
 
-- Go
+- Go 1.26+
 - REST API
 - PostgreSQL
-- JWT-авторизация
----
-# Taskery REST API
+- JWT Авторизация
+- Docker
 
-REST API for **Taskery** — a task and todo management system with synchronization
-designed to be used by a CLI client.
+## Начало работы
 
-## Purpose
+Выполните следующие шаги для настройки и запуска проекта локально.
 
-This project is created to practice:
-- Designing a backend application using DDD principles
-- Separating domain logic from application and infrastructure layers
-- Building a clean and maintainable REST API
+### Предварительные требования
 
-## Architecture
+- [Go 1.26+](https://go.dev/dl/)
+- [Docker и Docker Compose](https://www.docker.com/products/docker-desktop)
+- PostgreSQL клиент (опционально для отладки)
 
-The application is structured into layers:
+### Настройка
 
-- *Domain layer*  
-  Core business logic: entities, value objects, domain rules
+1. **Клонирование репозитория**:
+   ```bash
+   git clone https://github.com/godlevsk1y/taskery-api.git
+   cd taskery-api
+   ```
 
-- *Application layer*  
-  Use cases and services that orchestrate domain logic
+2. **Настройка переменных окружения**:
+   ```bash
+   cp example.env .env
+   ```
+   Отредактируйте `.env` с вашими учетными данными базы данных и другими настройками.
 
-- *Infrastructure layer*  
-  Data access and external integrations (e.g. JWT provider)
+3. **Запуск сервисов базы данных**:
+   ```bash
+   docker-compose up -d
+   ```
 
-- *Transport layer*  
-  REST API (HTTP handlers, DTOs)
+4. **Сборка приложения**:
+   ```bash
+   go build -o taskery-api ./cmd/taskery-api
+   ```
 
-## Technologies
+5. **Запуск API сервера**:
+   ```bash
+   ./taskery-api
+   ```
 
-- Go
-- REST API
-- PostgreSQL
-- JWT Authorization
+Сервер будет доступен по адресу `http://localhost:8080`.
+
+### Документация API
+
+Интерактивная документация API доступна по адресу:
+```
+http://localhost:8080/swagger/index.html
+```
+
+## Участие в разработке
+
+1. Создайте форк репозитория
+2. Создайте новую ветку (`git checkout -b feature/AmazingFeature`)
+3. Внесите изменения (`git commit -m 'Add some AmazingFeature'`)
+4. Запушите изменения (`git push origin feature/AmazingFeature`)
+5. Откройте Pull Request
+
+## Тестирование
+
+Запустите все тесты с помощью:
+```bash
+go test ./...
+```
+
+## Лицензия
+
+Этот проект лицензирован по лицензии MIT — подробности см. в файле [LICENSE](LICENSE).

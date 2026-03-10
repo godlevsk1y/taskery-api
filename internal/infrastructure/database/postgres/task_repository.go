@@ -70,8 +70,7 @@ func (tr *TaskRepository) Create(ctx context.Context, task *models.Task) error {
 		task.CompletedAt(),
 	)
 	if err != nil {
-		var pqErr *pq.Error
-		if errors.As(err, &pqErr) {
+		if pqErr, ok := errors.AsType[*pq.Error](err); ok {
 			switch pqErr.Code {
 			case "23505": // unique constraint
 				return services.ErrTaskRepoExists
@@ -101,7 +100,7 @@ func (tr *TaskRepository) FindByID(ctx context.Context, id string) (*models.Task
 	const op = "postgres.TaskRepository.FindByID"
 
 	const query = `
-		SELECT id, owner_id, title, description, deadline, is_completed, completed_at 
+		SELECT id, owner_id, title, description, deadline, is_completed, completed_at
 		FROM tasks WHERE id = $1`
 
 	row := tr.db.QueryRowContext(ctx, query, id)
@@ -152,11 +151,11 @@ func (tr *TaskRepository) Update(ctx context.Context, task *models.Task) error {
 	const op = "postgres.TaskRepository.Update"
 
 	const query = `
-		UPDATE tasks SET 
-			 title = $1, 
-			 description = $2, 
-			 deadline = $3, 
-			 is_completed = $4, 
+		UPDATE tasks SET
+			 title = $1,
+			 description = $2,
+			 deadline = $3,
+			 is_completed = $4,
 			 completed_at = $5
 		WHERE id = $6`
 

@@ -39,6 +39,17 @@ func NewRegisterHandler(
 	}
 }
 
+// @Summary Register new user
+// @Description Register a new user with username, email, and password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body RegisterRequest true "Registration request"
+// @Success 201 {object} RegisterResponse
+// @Failure 400 {object} handlers.ErrorResponse
+// @Failure 409 {object} handlers.ErrorResponse
+// @Failure 500 {object} handlers.ErrorResponse
+// @Router /auth/register [post]
 func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	const op = "handlers.auth.Register"
 

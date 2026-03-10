@@ -41,6 +41,20 @@ func NewUpdateHandler(
 	}
 }
 
+// @Summary Update a user
+// @Description Updates the authenticated user's account information
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body UpdateRequest true "User update request"
+// @Security BearerAuth
+// @Success 200 {object} UpdateResponse
+// @Failure 400 {object} handlers.ErrorResponse
+// @Failure 401 {object} handlers.ErrorResponse
+// @Failure 403 {object} handlers.ErrorResponse
+// @Failure 404 {object} handlers.ErrorResponse
+// @Failure 500 {object} handlers.ErrorResponse
+// @Router /user [patch]
 func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	const op = "handlers.User.Update"
 
@@ -62,7 +76,12 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), h.timeout)
 	defer cancel()
 
-	userID := r.Context().Value(myMw.UserContextKey).(string)
+	userID := myMw.GetUserID(r.Context())
+	if userID == "" {
+		logger.Error("failed to extract owner id")
+		handlers.WriteError(w, http.StatusBadRequest, errors.New("bad request"))
+		return
+	}
 
 	if req.Username != "" {
 		err := h.updater.ChangeUsername(ctx, userID, req.Username, req.Password)
@@ -124,5 +143,3 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Email:    req.Email,
 	})
 }
-
-// TODO: add more logging in handlers (e.g. after successful registration or deletion)

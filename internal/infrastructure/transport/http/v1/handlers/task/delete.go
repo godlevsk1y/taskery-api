@@ -1,4 +1,4 @@
-package user
+package task
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 )
 
 type Deleter interface {
-	Delete(ctx context.Context, id string, password string) error
+	Delete(ctx context.Context, id string, ownerID string) error
 }
 
 type DeleteHandler struct {
@@ -30,7 +30,6 @@ func NewDeleteHandler(
 	timeout time.Duration,
 	logger *slog.Logger,
 	validate *validator.Validate) *DeleteHandler {
-
 	return &DeleteHandler{
 		deleter:  deleter,
 		timeout:  timeout,
@@ -39,21 +38,22 @@ func NewDeleteHandler(
 	}
 }
 
-// @Summary Delete a user
-// @Description Deletes the authenticated user's account
-// @Tags users
+// @Summary Delete a task
+// @Description Deletes an existing task for the authenticated user
+// @Tags tasks
 // @Accept json
 // @Produce json
-// @Param request body DeleteRequest true "User delete request"
-// @Security BearerAuth
+// @Param request body DeleteRequest true "Task deletion request"
+// @Security     BearerAuth
 // @Success 204 {object} nil
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 401 {object} handlers.ErrorResponse
+// @Failure 403 {object} handlers.ErrorResponse
 // @Failure 404 {object} handlers.ErrorResponse
 // @Failure 500 {object} handlers.ErrorResponse
-// @Router /user [delete]
+// @Router /tasks [delete]
 func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	const op = "handlers.User.Delete"
+	const op = "handlers.Task.Delete"
 
 	logger := h.logger.With(
 		slog.String("op", op),
@@ -75,20 +75,17 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), h.timeout)
 	defer cancel()
 
-	err := h.deleter.Delete(ctx, userID, req.Password)
+	err := h.deleter.Delete(ctx, req.TaskID, userID)
 	if err != nil {
-		logger.Error("failed to delete user",
-			slog.String("error", err.Error()),
-			slog.String("user_id", userID),
-		)
+		logger.Error("failed to delete task", slog.String("err", err.Error()))
 
-		if errors.Is(err, services.ErrUserNotFound) {
-			handlers.WriteError(w, http.StatusNotFound, errors.New("user not found"))
+		if errors.Is(err, services.ErrTaskNotFound) {
+			handlers.WriteError(w, http.StatusNotFound, errors.New("task not found"))
 			return
 		}
 
-		if errors.Is(err, services.ErrUserUnauthorized) {
-			handlers.WriteError(w, http.StatusUnauthorized, errors.New("unauthorized"))
+		if errors.Is(err, services.ErrTaskAccessDenied) {
+			handlers.WriteError(w, http.StatusForbidden, errors.New("access denied"))
 			return
 		}
 
@@ -96,5 +93,6 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	logger.Info("task deleted")
 	handlers.WriteJSON(w, http.StatusNoContent, nil)
 }
