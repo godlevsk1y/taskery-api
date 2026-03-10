@@ -35,7 +35,7 @@ type PostgresConnection struct {
 }
 
 type JWT struct {
-	Secret string        `yaml:"secret" env-required:"true"`
+	Secret string        `yaml:"secret" env-required:"true" env:"JWT_SECRET"`
 	TTL    time.Duration `yaml:"ttl" env-required:"true"`
 	Issuer string        `yaml:"issuer" env-required:"true"`
 }

@@ -14,6 +14,6 @@ postgres_connection:
   ssl_mode: "disable"
 
 jwt:
-  secret: "some-secret-key"
+  secret: ${JWT_SECRET}
   ttl: 0s
   issuer: "issuer"
