@@ -39,6 +39,18 @@ func NewDeleteHandler(
 	}
 }
 
+// @Summary Delete a user
+// @Description Deletes the authenticated user's account
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body DeleteRequest true "User delete request"
+// @Success 204 {object} nil
+// @Failure 400 {object} handlers.ErrorResponse
+// @Failure 401 {object} handlers.ErrorResponse
+// @Failure 404 {object} handlers.ErrorResponse
+// @Failure 500 {object} handlers.ErrorResponse
+// @Router /user [delete]
 func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	const op = "handlers.User.Delete"
 

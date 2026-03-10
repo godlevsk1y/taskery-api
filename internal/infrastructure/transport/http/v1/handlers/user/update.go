@@ -41,6 +41,19 @@ func NewUpdateHandler(
 	}
 }
 
+// @Summary Update a user
+// @Description Updates the authenticated user's account information
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body UpdateRequest true "User update request"
+// @Success 200 {object} UpdateResponse
+// @Failure 400 {object} handlers.ErrorResponse
+// @Failure 401 {object} handlers.ErrorResponse
+// @Failure 403 {object} handlers.ErrorResponse
+// @Failure 404 {object} handlers.ErrorResponse
+// @Failure 500 {object} handlers.ErrorResponse
+// @Router /user [patch]
 func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	const op = "handlers.User.Update"
 
